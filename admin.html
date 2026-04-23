@@ -549,7 +549,11 @@ async function carregarLinks(){
   var script=getScriptUrl();
   if(!script || !isValidAppsScriptUrl(script)) return;
   jsonp(script+'?tipo=links', function(err, data) {
-    if(!err && Array.isArray(data) && data.length) {
+    if(err){
+      console.warn('Erro JSONP links:', err.message);
+      return;
+    }
+    if(Array.isArray(data) && data.length) {
       localStorage.setItem('ahsd_links', JSON.stringify(data));
       renderLinks(data); atualizarBadges();
     }
@@ -589,7 +593,10 @@ async function carregarRespostas(){
   }
   c.innerHTML='<div class="empty"><div class="ei">⏳</div><p>Carregando...</p></div>';
   jsonp(script+'?tipo=respostas', function(err, data) {
-    if(err){c.innerHTML='<div class="empty"><div class="ei">❌</div><p>Erro ao carregar. Verifique a URL do Apps Script e reimplante o script atualizado.</p></div>';return;}
+    if(err){
+      c.innerHTML='<div class="empty"><div class="ei">❌</div><p>Erro ao carregar. Verifique a URL do Apps Script e reimplante o script atualizado.</p><p style="margin-top:1rem;font-size:.82rem;color:#7f1d1d">'+err.message+'</p></div>';
+      return;
+    }
     if(!Array.isArray(data)||!data.length){c.innerHTML='<div class="empty"><div class="ei">📭</div><p>Nenhuma resposta ainda.<br>Compartilhe os links com os pais.</p></div>';return;}
     todasResp=data;
     popularFiltros(data);

@@ -92,9 +92,11 @@ def run_test(script_url, output_dir):
                 last_exc = exc
             except ValueError as exc:
                 print(f'    parse failed: {exc}')
+                print('    resposta bruta:', raw[:1200].replace('\n', ' '))
                 last_exc = exc
             except json.JSONDecodeError as exc:
                 print(f'    JSON decode failed: {exc}')
+                print('    resposta bruta:', raw[:1200].replace('\n', ' '))
                 last_exc = exc
         else:
             raise RuntimeError(f'Não foi possível obter {tipo}: {last_exc}')
