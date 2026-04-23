@@ -517,16 +517,27 @@ function copiarLink(){
 // LINKS
 function jsonp(url, callback) {
   var name = 'cb_' + Date.now();
+  var script = document.createElement('script');
+  var timer = setTimeout(function() {
+    if (window[name]) {
+      delete window[name];
+      if (script.parentNode) document.head.removeChild(script);
+      callback(new Error('JSONP timeout: o servidor não retornou callback. Verifique a URL e a implantação do Apps Script.'));
+    }
+  }, 12000);
+
   window[name] = function(data) {
+    clearTimeout(timer);
     delete window[name];
-    document.head.removeChild(script);
+    if (script.parentNode) document.head.removeChild(script);
     callback(null, data);
   };
-  var script = document.createElement('script');
+
   script.onerror = function() {
+    clearTimeout(timer);
     delete window[name];
-    document.head.removeChild(script);
-    callback(new Error('JSONP error'));
+    if (script.parentNode) document.head.removeChild(script);
+    callback(new Error('JSONP error ao carregar a URL: ' + url));
   };
   script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + name;
   document.head.appendChild(script);
