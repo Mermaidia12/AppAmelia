@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AH/SD — Painel Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a2e; --ink2: #2d2d44;
+  --accent: #5b5bd6; --accent2: #7c3aed;
+  --green: #059669; --amber: #d97706; --red: #dc2626;
+  --gray: #6b7280; --surface: #fff; --surface2: #f7f7fb; --border: #e8e8f0;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--surface2); color: var(--ink); min-height: 100vh; }
+
+/* TOPBAR */
+.topbar {
+  background: var(--ink); color: #fff; padding: 0 1.5rem;
+  height: 56px; display: flex; align-items: center; gap: 1rem;
+  position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+.topbar-logo { font-family: 'DM Serif Display', serif; font-size: 1.1rem; }
+.topbar-logo span { color: #a5b4fc; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: .75rem; }
+.badge-admin { background: #7c3aed; color: #fff; font-size: .7rem; font-weight: 700; padding: .2rem .65rem; border-radius: 999px; }
+
+/* LAYOUT */
+.container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 1.25rem; color: var(--ink); display: flex; align-items: center; gap: .5rem; }
+
+/* SETUP BANNER */
+.setup-banner {
+  background: #fffbeb; border: 1.5px solid #fbbf24; border-radius: 12px;
+  padding: 1.1rem 1.25rem; margin-bottom: 1.5rem; font-size: .85rem; line-height: 1.7;
+}
+.setup-banner strong { color: #92400e; }
+.setup-banner code { background: #fef3c7; padding: .1rem .4rem; border-radius: 4px; font-size: .8rem; font-family: monospace; }
+.setup-banner .steps { margin-top: .6rem; padding-left: 1.2rem; }
+.setup-banner .steps li { margin-bottom: .25rem; }
+.setup-banner.ok { background: #f0fdf4; border-color: #86efac; }
+.setup-banner.ok strong { color: #166534; }
+
+/* CARDS */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.4rem; margin-bottom: 1.25rem;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-size: 1rem; font-weight: 700; color: var(--ink);
+  padding-bottom: .75rem; margin-bottom: .75rem;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: .5rem;
+}
+
+/* FORM */
+.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: .75rem; margin-bottom: 1rem; }
+.form-group { display: flex; flex-direction: column; gap: .3rem; }
+.form-group label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--gray); }
+.form-group input { border: 1.5px solid var(--border); border-radius: 8px; padding: .5rem .75rem; font-size: .875rem; font-family: inherit; background: var(--surface2); transition: border-color .15s; color: var(--ink); }
+.form-group input:focus { outline: none; border-color: var(--accent); background: #fff; }
+
+/* QUESTIONNAIRE SELECTOR */
+.q-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: .6rem; margin-bottom: 1rem; }
+.q-check {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .65rem .85rem; border-radius: 8px;
+  border: 1.5px solid var(--border); cursor: pointer;
+  font-size: .84rem; font-weight: 500; transition: all .15s;
+  background: var(--surface2); user-select: none;
+}
+.q-check:hover { border-color: var(--accent); background: #ede9fe; }
+.q-check input { display: none; }
+.q-check.selected { background: #ede9fe; border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.q-check .q-icon { font-size: 1.1rem; flex-shrink: 0; }
+.q-check .q-tag { font-size: .62rem; font-weight: 700; color: var(--gray); margin-left: auto; }
+.q-check.selected .q-tag { color: var(--accent2); }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; gap: .45rem; padding: .6rem 1.25rem; border: none; border-radius: 8px; font-family: inherit; font-size: .875rem; font-weight: 600; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-green { background: var(--green); color: #fff; }
+.btn-ghost { background: var(--surface2); color: var(--ink2); border: 1.5px solid var(--border); }
+.btn-ghost:hover { background: var(--border); }
+.btn-sm { padding: .3rem .75rem; font-size: .78rem; }
+.btn-bar { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1rem; }
+
+/* LINK OUTPUT */
+.link-result {
+  background: #f0fdf4; border: 1.5px solid #86efac;
+  border-radius: 10px; padding: 1rem 1.1rem;
+  margin-top: 1rem; display: none;
+}
+.link-result.show { display: block; }
+.link-result p { font-size: .8rem; color: #166534; font-weight: 600; margin-bottom: .5rem; }
+.link-box {
+  display: flex; align-items: center; gap: .5rem;
+  background: #fff; border: 1px solid #86efac; border-radius: 8px; padding: .5rem .75rem;
+}
+.link-box span { font-size: .78rem; font-family: monospace; color: var(--ink2); flex: 1; word-break: break-all; }
+.link-box button { flex-shrink: 0; }
+
+/* LINKS TABLE */
+.links-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.links-table th { background: var(--surface2); padding: .5rem .75rem; text-align: left; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--gray); border-bottom: 2px solid var(--border); }
+.links-table td { padding: .6rem .75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.links-table tr:last-child td { border-bottom: none; }
+.links-table tr:hover td { background: #fafaff; }
+.pill { display: inline-block; padding: .15rem .5rem; border-radius: 999px; font-size: .68rem; font-weight: 700; }
+.pill-green { background: #d1fae5; color: #065f46; }
+.pill-blue  { background: #dbeafe; color: #1e40af; }
+.pill-amber { background: #fef3c7; color: #92400e; }
+
+/* TOAST */
+#toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--ink); color: #fff; padding: .8rem 1.25rem; border-radius: 10px; font-weight: 600; font-size: .875rem; box-shadow: 0 8px 32px rgba(0,0,0,.2); transform: translateY(80px); opacity: 0; transition: all .3s; z-index: 999; }
+#toast.show { transform: translateY(0); opacity: 1; }
+
+/* URL CONFIG */
+.url-config { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: .75rem 1rem; margin-bottom: 1rem; font-size: .82rem; display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.url-config label { font-weight: 700; color: var(--gray); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }
+.url-config input { flex: 1; min-width: 280px; border: 1.5px solid var(--border); border-radius: 6px; padding: .4rem .7rem; font-size: .82rem; font-family: monospace; }
+.url-config input:focus { outline: none; border-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-logo">🧠 AH/SD <span>Admin</span></div>
+  <div class="topbar-right">
+    <span class="badge-admin">🔐 Painel Administrativo</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- SETUP BANNER -->
+  <div class="setup-banner" id="setup-banner">
+    <strong>⚙️ Configuração necessária — Google Apps Script</strong>
+    <ol class="steps">
+      <li>Abra sua planilha no Google Sheets e vá em <strong>Extensões → Apps Script</strong></li>
+      <li>Cole o conteúdo do arquivo <code>apps-script.js</code> e salve</li>
+      <li>Clique em <strong>Implantar → Nova implantação → App da Web</strong></li>
+      <li>Em "Quem tem acesso" escolha <strong>Qualquer pessoa</strong> e clique em Implantar</li>
+      <li>Copie a URL gerada e cole no campo abaixo:</li>
+    </ol>
+  </div>
+
+  <!-- CONFIG -->
+  <div class="card">
+    <div class="card-title">⚙️ Configuração</div>
+    <div class="url-config">
+      <label>URL do Apps Script</label>
+      <input type="text" id="script-url" placeholder="https://script.google.com/macros/s/SEU_ID/exec" oninput="salvarConfig()">
+    </div>
+    <div class="url-config" style="margin-bottom:0">
+      <label>URL base do site (GitHub Pages)</label>
+      <input type="text" id="base-url" placeholder="https://seuuser.github.io/ahsd" oninput="salvarConfig()">
+    </div>
+    <p style="font-size:.75rem;color:var(--gray);margin-top:.5rem">As configurações são salvas automaticamente no navegador.</p>
+  </div>
+
+  <!-- GERADOR DE LINKS -->
+  <div class="card">
+    <div class="card-title">🔗 Gerar Link para os Pais</div>
+
+    <div class="form-grid">
+      <div class="form-group" style="grid-column:1/-1;max-width:320px">
+        <label>Identificação interna (para seu controle)</label>
+        <input type="text" id="aluno-nome" placeholder="Ex: João Silva — 3º ano">
+      </div>
+    </div>
+    <p style="font-size:.78rem;color:var(--gray);margin-bottom:.75rem;line-height:1.5">
+      ℹ️ Os pais preencherão o nome do aluno e escola ao abrir o link. O campo acima é apenas para sua organização interna.
+    </p>
+
+    <div class="card-title" style="font-size:.85rem;border-bottom:none;padding-bottom:.25rem;margin-bottom:.5rem">Selecione os questionários:</div>
+    <div class="q-grid" id="q-selector"></div>
+
+    <div class="btn-bar">
+      <button class="btn btn-primary" onclick="gerarLink()">🔗 Gerar Link</button>
+      <button class="btn btn-ghost" onclick="selecionarTodos()">☑️ Selecionar Todos</button>
+      <button class="btn btn-ghost" onclick="limparSelecao()">✕ Limpar Seleção</button>
+    </div>
+
+    <div class="link-result" id="link-result">
+      <p>✅ Link gerado com sucesso! Copie e envie para os pais:</p>
+      <div class="link-box">
+        <span id="link-gerado"></span>
+        <button class="btn btn-green btn-sm" onclick="copiarLink()">📋 Copiar</button>
+        <a id="link-abrir" href="#" target="_blank" class="btn btn-ghost btn-sm">🔗 Abrir</a>
+      </div>
+      <div style="margin-top:.6rem;font-size:.75rem;color:#166534">
+        📱 Você pode compartilhar este link via WhatsApp, e-mail ou qualquer mensagem.
+      </div>
+    </div>
+  </div>
+
+  <!-- LINKS GERADOS -->
+  <div class="card">
+    <div class="card-title">📋 Links Gerados
+      <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="carregarLinks()">🔄 Atualizar</button>
+    </div>
+    <div id="links-container">
+      <p style="color:var(--gray);font-size:.875rem;font-style:italic">Carregando links...</p>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// LISTA DE QUESTIONÁRIOS DISPONÍVEIS
+// ══════════════════════════════════════════════════════════
+const QUESTIONARIOS = [
+  { id: 'a1',    label: 'Anexo 1 — Entrevista Pais',       icon: '🗣️', tag: 'PAIS' },
+  { id: 'a2',    label: 'Anexo 2 — Indicadores',           icon: '📋', tag: 'PROF/PAIS' },
+  { id: 'a3',    label: 'Anexo 3 — Primeira Infância',     icon: '✅', tag: 'PAIS' },
+  { id: 'd_ling',label: 'Anexo 4 — Linguagem',             icon: '📚', tag: 'DOMÍNIO' },
+  { id: 'd_mat', label: 'Anexo 5 — Matemática',            icon: '🔢', tag: 'DOMÍNIO' },
+  { id: 'd_mus', label: 'Anexo 6 — Musical',               icon: '🎵', tag: 'DOMÍNIO' },
+  { id: 'd_art', label: 'Anexo 7 — Artes Visuais',         icon: '🎨', tag: 'DOMÍNIO' },
+  { id: 'd_cie', label: 'Anexo 8 — Ciências',              icon: '🔬', tag: 'DOMÍNIO' },
+  { id: 'd_mov', label: 'Anexo 9 — Movimento',             icon: '🤸', tag: 'DOMÍNIO' },
+  { id: 'd_esp', label: 'Anexo 10 — Espacial',             icon: '🧩', tag: 'DOMÍNIO' },
+  { id: 'd_soc', label: 'Anexo 11 — Social',               icon: '👥', tag: 'DOMÍNIO' },
+  { id: 'a12',   label: 'Anexo 12 — Estilo de Trabalho',   icon: '⚙️', tag: 'PROFESSOR' },
+  { id: 'a13',   label: 'Anexo 13 — Criatividade',         icon: '💡', tag: 'PROFESSOR' },
+  { id: 'a16',   label: 'Anexo 16 — Pós-identificação',    icon: '📝', tag: 'PAIS' },
+];
+
+let selecionados = new Set();
+
+// ══════════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════════
+function salvarConfig() {
+  localStorage.setItem('ahsd_script_url', document.getElementById('script-url').value.trim());
+  localStorage.setItem('ahsd_base_url',   document.getElementById('base-url').value.trim());
+}
+
+function getScriptUrl() { return localStorage.getItem('ahsd_script_url') || ''; }
+function getBaseUrl()   { return (localStorage.getItem('ahsd_base_url') || '').replace(/\/$/, ''); }
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  // Restore config
+  const savedUrl  = localStorage.getItem('ahsd_script_url') || '';
+  const savedBase = localStorage.getItem('ahsd_base_url')   || '';
+  document.getElementById('script-url').value = savedUrl;
+  document.getElementById('base-url').value   = savedBase;
+
+  if (savedUrl) {
+    document.getElementById('setup-banner').className = 'setup-banner ok';
+    document.getElementById('setup-banner').innerHTML =
+      '<strong>✅ Apps Script configurado!</strong> As respostas serão salvas na sua planilha do Google Sheets.';
+  }
+
+  // Build selector
+  const grid = document.getElementById('q-selector');
+  QUESTIONARIOS.forEach(q => {
+    const el = document.createElement('label');
+    el.className = 'q-check';
+    el.dataset.id = q.id;
+    el.innerHTML = `<input type="checkbox" value="${q.id}">
+      <span class="q-icon">${q.icon}</span>
+      <span style="flex:1">${q.label}</span>
+      <span class="q-tag">${q.tag}</span>`;
+    el.addEventListener('click', () => {
+      el.classList.toggle('selected');
+      if (selecionados.has(q.id)) selecionados.delete(q.id);
+      else selecionados.add(q.id);
+    });
+    grid.appendChild(el);
+  });
+
+  carregarLinks();
+});
+
+// ══════════════════════════════════════════════════════════
+// SELEÇÃO
+// ══════════════════════════════════════════════════════════
+function selecionarTodos() {
+  document.querySelectorAll('.q-check').forEach(el => {
+    el.classList.add('selected');
+    selecionados.add(el.dataset.id);
+  });
+}
+
+function limparSelecao() {
+  document.querySelectorAll('.q-check').forEach(el => el.classList.remove('selected'));
+  selecionados.clear();
+}
+
+// ══════════════════════════════════════════════════════════
+// GERAR LINK
+// ══════════════════════════════════════════════════════════
+function gerarLink() {
+  const label  = document.getElementById('aluno-nome').value.trim() || 'Sem identificação';
+  const scriptUrl = getScriptUrl();
+  const baseUrl   = getBaseUrl();
+  if (!baseUrl) { toast('⚠️ Configure a URL do site primeiro', '#d97706'); return; }
+  if (!selecionados.size) { toast('⚠️ Selecione pelo menos 1 questionário', '#d97706'); return; }
+
+  const linkId = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+  const qs     = [...selecionados].join(',');
+
+  // Link limpo — pais preenchem os dados deles ao abrir
+  const params = new URLSearchParams({ qs, id: linkId });
+  const url = `${baseUrl}/index.html?${params.toString()}`;
+
+  // Exibir link
+  document.getElementById('link-gerado').textContent = url;
+  document.getElementById('link-abrir').href = url;
+  document.getElementById('link-result').classList.add('show');
+  document.getElementById('link-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  // Salvar localmente
+  const linksLocais = JSON.parse(localStorage.getItem('ahsd_links') || '[]');
+  linksLocais.unshift({ data: new Date().toLocaleString('pt-BR'), label, questionarios: qs, linkId, url, respostas: 0 });
+  localStorage.setItem('ahsd_links', JSON.stringify(linksLocais));
+  renderLinks(linksLocais);
+
+  // Salvar no Google Sheets
+  if (scriptUrl) {
+    fetch(scriptUrl, {
+      method: 'POST',
+      body: JSON.stringify({ tipo: 'link', label, questionarios: [...selecionados], linkId, url })
+    }).catch(() => {});
+  }
+
+  toast('✅ Link gerado!', '#059669');
+}
+
+function copiarLink() {
+  const url = document.getElementById('link-gerado').textContent;
+  navigator.clipboard.writeText(url).then(() => toast('📋 Link copiado!', '#5b5bd6'));
+}
+
+// ══════════════════════════════════════════════════════════
+// CARREGAR LINKS
+// ══════════════════════════════════════════════════════════
+async function carregarLinks() {
+  // Primeiro carrega do localStorage (rápido)
+  const local = JSON.parse(localStorage.getItem('ahsd_links') || '[]');
+  if (local.length) renderLinks(local);
+
+  // Depois tenta buscar do Sheets (pode demorar)
+  const scriptUrl = getScriptUrl();
+  if (!scriptUrl) {
+    if (!local.length) document.getElementById('links-container').innerHTML =
+      '<p style="color:var(--gray);font-size:.875rem;font-style:italic">Configure o Apps Script para ver os links aqui.</p>';
+    return;
+  }
+  try {
+    const res  = await fetch(`${scriptUrl}?tipo=links`);
+    const data = await res.json();
+    if (Array.isArray(data) && data.length) {
+      localStorage.setItem('ahsd_links', JSON.stringify(data));
+      renderLinks(data);
+    }
+  } catch(e) { /* mantém local */ }
+}
+
+function renderLinks(links) {
+  const c = document.getElementById('links-container');
+  if (!links.length) {
+    c.innerHTML = '<p style="color:var(--gray);font-size:.875rem;font-style:italic">Nenhum link gerado ainda.</p>';
+    return;
+  }
+  c.innerHTML = `<div style="overflow-x:auto"><table class="links-table">
+    <thead><tr>
+      <th>Identificação interna</th><th>Questionários</th>
+      <th>Respostas</th><th>Data</th><th></th>
+    </tr></thead>
+    <tbody>
+      ${links.map(l => `<tr>
+        <td><strong>${l.label||l.aluno||'—'}</strong></td>
+        <td style="max-width:200px;font-size:.75rem;color:var(--gray)">${(l.questionarios||'').toString().replace(/,/g,', ')}</td>
+        <td><span class="pill ${(l.respostas||0)>0?'pill-green':'pill-amber'}">${l.respostas||0} resp.</span></td>
+        <td style="font-size:.75rem;color:var(--gray);white-space:nowrap">${l.data||'—'}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm" onclick="copiarURL('${(l.url||'').replace(/'/g,'\\'')}')">📋 Copiar</button>
+          <a href="${l.url||'#'}" target="_blank" class="btn btn-ghost btn-sm">🔗 Abrir</a>
+        </td>
+      </tr>`).join('')}
+    </tbody>
+  </table></div>`;
+}
+
+function copiarURL(url) {
+  navigator.clipboard.writeText(url).then(() => toast('📋 Link copiado!', '#5b5bd6'));
+}
+
+// ══════════════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════════════
+function toast(msg, color='#5b5bd6') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.background = color;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Questionário AH/SD</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#1a1a2e; --ink2:#2d2d44; --accent:#5b5bd6; --accent2:#7c3aed;
+  --green:#059669; --amber:#d97706; --red:#dc2626; --gray:#6b7280;
+  --surface:#fff; --surface2:#f7f7fb; --border:#e8e8f0;
+  --header-h:56px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--surface2);color:var(--ink);min-height:100vh}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:200;height:var(--header-h);background:var(--ink);display:flex;align-items:center;gap:1rem;padding:0 1.25rem;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.topbar-logo{font-family:'DM Serif Display',serif;font-size:1.1rem;color:#fff;white-space:nowrap}
+.topbar-logo span{color:#a5b4fc}
+.topbar-aluno{margin-left:auto;background:rgba(255,255,255,.1);color:#e0e7ff;font-size:.75rem;font-weight:600;padding:.25rem .75rem;border-radius:999px;white-space:nowrap;overflow:hidden;max-width:200px;text-overflow:ellipsis}
+
+/* PROGRESS BAR */
+.progress-topbar{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s ease;position:fixed;top:var(--header-h);left:0;z-index:199}
+
+/* STEPPER */
+.stepper{display:flex;align-items:center;gap:0;overflow-x:auto;padding:1rem 1.25rem .5rem;scrollbar-width:none}
+.stepper::-webkit-scrollbar{display:none}
+.step{display:flex;flex-direction:column;align-items:center;gap:.25rem;min-width:70px;cursor:pointer;opacity:.45;transition:opacity .2s}
+.step.active{opacity:1}
+.step.done{opacity:.75}
+.step-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:all .2s;flex-shrink:0}
+.step.active .step-dot{border-color:var(--accent);background:#ede9fe;box-shadow:0 0 0 3px rgba(91,91,214,.2)}
+.step.done .step-dot{background:var(--green);border-color:var(--green);color:#fff}
+.step-line{width:24px;height:2px;background:var(--border);flex-shrink:0;align-self:flex-start;margin-top:13px}
+.step-line.done{background:var(--green)}
+.step-label{font-size:.6rem;font-weight:600;color:var(--gray);text-align:center;max-width:64px;line-height:1.3}
+.step.active .step-label{color:var(--accent);font-weight:700}
+
+/* MAIN */
+.main{max-width:800px;margin:0 auto;padding:1.25rem 1.25rem 4rem}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.4rem;margin-bottom:1.25rem;box-shadow:var(--shadow);display:none}
+.card.active{display:block}
+.card-title{font-size:1rem;font-weight:700;color:var(--ink);padding-bottom:.75rem;margin-bottom:.75rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem}
+.page-tag{display:inline-flex;align-items:center;background:#ede9fe;color:var(--accent);font-size:.7rem;font-weight:700;padding:.2rem .6rem;border-radius:4px;margin-bottom:.5rem;letter-spacing:.04em;text-transform:uppercase}
+.page-header{margin-bottom:1.25rem}
+.page-header h2{font-size:1.3rem;font-weight:700}
+.page-header p{color:var(--gray);font-size:.875rem;margin-top:.25rem}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:.75rem;margin-bottom:1rem}
+.form-group{display:flex;flex-direction:column;gap:.3rem}
+.form-group label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray)}
+.form-group input,.form-group select,.form-group textarea{border:1.5px solid var(--border);border-radius:8px;padding:.5rem .75rem;font-size:.875rem;font-family:inherit;background:var(--surface2);transition:border-color .15s;color:var(--ink)}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--accent);background:#fff}
+.form-group textarea{resize:vertical;min-height:90px}
+.form-group input[readonly]{background:#f3f4f6;color:var(--gray);cursor:default}
+
+/* SECTION HEADER ROWS */
+.sec-chip{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;padding:.45rem .9rem;border-radius:6px;font-weight:700;font-size:.82rem;margin:1rem 0 .5rem;letter-spacing:.03em}
+tr.sec-hdr td{background:linear-gradient(135deg,var(--accent),var(--accent2));padding:.45rem .6rem;border-bottom:none;font-weight:700;font-size:.78rem;letter-spacing:.03em;color:#fff}
+tr.sec-hdr td:first-child{border-radius:6px 0 0 6px}
+tr.sec-hdr td:last-child{border-radius:0 6px 6px 0}
+.sec-hdr-label{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;opacity:.92;text-align:center}
+.sec-hdr-label.lbl-n{color:#fca5a5}.sec-hdr-label.lbl-av{color:#fcd34d}
+.sec-hdr-label.lbl-s{color:#6ee7b7}.sec-hdr-label.lbl-no{color:#d1d5db}
+.sec-hdr-label.lbl-sim{color:#6ee7b7}.sec-hdr-label.lbl-nao{color:#fca5a5}
+
+/* TABLES */
+.q-table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.q-table colgroup col:first-child{width:54%}
+.q-table thead{display:none}
+.q-table td{padding:.55rem .6rem;border-bottom:1px solid var(--border);font-size:.84rem;vertical-align:middle}
+.q-table td:not(:first-child){text-align:center}
+.q-table tr:last-child td{border-bottom:none}
+.q-table tr:hover:not(.sec-hdr) td{background:#fafaff}
+.q-num{color:var(--accent);font-weight:700;margin-right:.3rem}
+.q-table input[type="radio"]{display:none}
+.q-table label.rl{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border:2px solid var(--border);border-radius:50%;cursor:pointer;transition:all .15s;font-size:.7rem}
+.q-table input[type="radio"]:checked+label.rl{border-width:0;color:#fff}
+.col-n input:checked+label.rl{background:var(--red)}
+.col-av input:checked+label.rl{background:var(--amber)}
+.col-s input:checked+label.rl{background:var(--green)}
+.col-no input:checked+label.rl{background:var(--gray)}
+
+.sn-table{width:100%;border-collapse:separate;border-spacing:0}
+.sn-table thead{display:none}
+.sn-table td{padding:.55rem .75rem;border-bottom:1px solid var(--border);font-size:.84rem;vertical-align:middle}
+.sn-table td:not(:first-child){text-align:center}
+.sn-table tr:last-child td{border-bottom:none}
+.sn-table tr:hover:not(.sec-hdr) td{background:#fafaff}
+.sn-table input[type="radio"]{display:none}
+.sn-table label.sl{display:inline-flex;align-items:center;justify-content:center;width:30px;height:26px;border:2px solid var(--border);border-radius:6px;cursor:pointer;font-size:.72rem;font-weight:700;transition:all .15s;color:var(--gray)}
+.sn-table .col-sim input:checked+label.sl{background:var(--green);border-color:var(--green);color:#fff}
+.sn-table .col-nao input:checked+label.sl{background:var(--red);border-color:var(--red);color:#fff}
+
+/* OPEN QUESTION */
+.open-q{margin-bottom:1rem}
+.open-q label{display:block;font-size:.8rem;font-weight:600;color:var(--ink2);margin-bottom:.35rem}
+.open-q label .qn{color:var(--accent);font-weight:700;margin-right:.3rem}
+.open-q textarea{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:.6rem .8rem;font-size:.84rem;font-family:inherit;background:var(--surface2);resize:vertical;min-height:80px;transition:border-color .15s}
+.open-q textarea:focus{outline:none;border-color:var(--accent);background:#fff}
+
+/* PROGRESS */
+.progress-wrap{margin-bottom:1rem}
+.progress-row{display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:.3rem;color:var(--gray)}
+.progress-row strong{color:var(--ink)}
+.prog-bg{background:var(--surface2);border-radius:999px;height:8px;overflow:hidden;border:1px solid var(--border)}
+.prog-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s ease}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:.45rem;padding:.6rem 1.25rem;border:none;border-radius:8px;font-family:inherit;font-size:.875rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2)}
+.btn-green{background:var(--green);color:#fff}
+.btn-ghost{background:var(--surface2);color:var(--ink2);border:1.5px solid var(--border)}
+.btn-ghost:hover{background:var(--border)}
+.btn-bar{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border)}
+
+/* VALIDATION */
+.val-panel{display:none;background:#fff5f5;border:1.5px solid #fca5a5;border-radius:10px;padding:1rem 1.1rem;margin-top:1rem;animation:shake .35s ease}
+.val-panel.open{display:block}
+.val-panel-title{font-size:.82rem;font-weight:700;color:#dc2626;display:flex;align-items:center;gap:.4rem;margin-bottom:.6rem}
+.val-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.3rem}
+.val-list li{display:flex;align-items:baseline;gap:.45rem;font-size:.8rem;color:#7f1d1d;background:#fee2e2;border-radius:6px;padding:.35rem .65rem}
+.val-list li .val-num{font-weight:800;color:#dc2626;flex-shrink:0;font-size:.75rem;background:#fca5a5;border-radius:4px;padding:.05rem .35rem}
+.val-list li .val-sec{font-size:.68rem;color:#991b1b;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-left:auto;flex-shrink:0}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+/* FIXED NAV */
+.nav-fixed{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:.75rem 1.25rem;display:flex;justify-content:space-between;align-items:center;gap:.75rem;z-index:150;box-shadow:0 -4px 12px rgba(0,0,0,.08)}
+.nav-step-info{font-size:.8rem;color:var(--gray);font-weight:600}
+.nav-step-info strong{color:var(--ink)}
+
+/* SUCCESS */
+.success-screen{text-align:center;padding:3rem 1.5rem}
+.success-screen .icon{font-size:4rem;margin-bottom:1rem}
+.success-screen h2{font-size:1.5rem;font-weight:700;color:var(--green);margin-bottom:.75rem}
+.success-screen p{color:var(--gray);font-size:.95rem;line-height:1.6}
+
+/* NO LINK */
+.no-link{text-align:center;padding:4rem 2rem}
+.no-link .icon{font-size:3rem;margin-bottom:1rem}
+.no-link h2{font-size:1.3rem;font-weight:700;margin-bottom:.5rem}
+.no-link p{color:var(--gray);font-size:.9rem}
+
+/* TOAST */
+#toast{position:fixed;bottom:5rem;right:1.5rem;background:var(--ink);color:#fff;padding:.8rem 1.25rem;border-radius:10px;font-weight:600;font-size:.875rem;box-shadow:0 8px 32px rgba(0,0,0,.2);transform:translateY(80px);opacity:0;transition:all .3s;z-index:999}
+#toast.show{transform:translateY(0);opacity:1}
+
+/* A12 PAIRS */
+.a12-pair-row{display:flex;align-items:flex-start;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--border)}
+.a12-pair-row:last-child{border-bottom:none}
+.a12-dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.55rem;transition:all .15s;cursor:pointer}
+
+@media(max-width:600px){
+  .main{padding:1rem 1rem 5rem}
+  .q-table{font-size:.78rem}
+  .q-table th,.q-table td{padding:.4rem .3rem}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-logo">🧠 AH/<span>SD</span></div>
+  <div class="topbar-aluno" id="topbar-aluno">Carregando...</div>
+</header>
+<div class="progress-topbar" id="progress-topbar" style="width:0%"></div>
+
+<div style="overflow-x:auto">
+  <div class="stepper" id="stepper"></div>
+</div>
+
+<main class="main" id="main-content"></main>
+
+<div class="nav-fixed" id="nav-fixed" style="display:none">
+  <div class="nav-step-info">Passo <strong id="nav-current">1</strong> de <strong id="nav-total">1</strong></div>
+  <div style="display:flex;gap:.6rem">
+    <button class="btn btn-ghost" id="btn-prev" onclick="irPara(-1)" style="display:none">← Anterior</button>
+    <button class="btn btn-primary" id="btn-next" onclick="irPara(1)">Próximo →</button>
+    <button class="btn btn-green" id="btn-submit" onclick="enviarTudo()" style="display:none">✅ Enviar Respostas</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════
+// APPS SCRIPT URL — configure aqui
+// ════════════════════════════════════════
+// Esta URL é lida do localStorage (configurada no admin.html)
+// Ou coloque diretamente aqui se preferir:
+const APPS_SCRIPT_URL = localStorage.getItem('ahsd_script_url') || '';
+
+// ════════════════════════════════════════
+// DADOS — questões e domínios
+// ════════════════════════════════════════
+const A1_QUESTIONS = [
+  'A partir de qual momento perceberam que seu filho apresentava comportamentos e atitudes para além da sua idade?',
+  'Qual(is) os profissionais vocês procuraram para diagnosticar a precocidade de seu filho?',
+  'Quais as principais características de seu filho?',
+  'Na opinião de vocês, em quais habilidades seu filho apresenta maior facilidade?',
+  'Quais as habilidades que seu filho apresenta maior dificuldade?',
+  'Como vocês descrevem o comportamento de seu filho entre os amigos e familiares?',
+  'Como vocês descrevem o comportamento de seu filho na escola?',
+  'Como foi a trajetória escolar dele? Quais os pontos positivos e negativos?',
+  'Seu filho passou pelo processo de aceleração escolar? Se sim, como ocorreu o processo?',
+  'Vocês foram orientados pela escola sobre os procedimentos para o ingresso precoce no Ensino Fundamental?',
+  'Na opinião de vocês, quais foram os pontos positivos e negativos sobre aceleração de seu filho?',
+  'Seu filho teve atendimento da Educação Especial na sala de recurso multifuncional? Ocorreu antes ou após a aceleração?',
+  'Para o atendimento na sala de recurso multifuncional, a escola solicitou documentação específica (laudo clínico)?',
+  'O que vocês entendem sobre Altas Habilidades/Superdotação?',
+  'Quais suas expectativas em relação à escola no reconhecimento do potencial de seu filho?',
+  'Quais seus sentimentos em ser pai/mãe de uma possível criança superdotada?',
+];
+const A16_QUESTIONS = [
+  'Descreva os pontos positivos e negativos após a identificação de AH/SD de seu filho em relação ao atendimento na sala de recurso:',
+  'Houve mudanças em relação às áreas de interesse de seu filho?',
+  'Houve mudanças em relação às áreas de menor interesse e/ou dificuldades de seu filho?',
+  'Seu filho se reconhece como uma pessoa com AH/SD? Caso sim, descreva os pontos positivos e negativos deste reconhecimento.',
+  'Como você descreve o comportamento de seu filho entre amigos e familiares?',
+  'Como você descreve o comportamento de seu filho na escola?',
+  'Aponte os pontos positivos e negativos que ocorreram após a aceleração de seu filho.',
+  'Após o laudo para diagnóstico de AH/SD exigido pela Secretaria de Educação, quais foram os pontos positivos e negativos na escola?',
+  'O que você entende sobre Altas Habilidades/Superdotação?',
+  'Quais as facilidades e dificuldades de se ter um filho com AH/SD?',
+  'O que você acredita ser necessário para melhorar o reconhecimento e atendimento da criança com AH/SD nas escolas do município?',
+];
+const A2_SECTIONS=[{title:'ESTILO DE TRABALHO',qs:['As pessoas dizem que ele(a) faz coisas antes do esperado para sua faixa etária?','Acrescenta qualidades únicas a uma tarefa?','Gosta de juntar "coisas" para fazer experimentos, com interesse em descobrir o que acontece?','Destaca-se do grupo porque trabalha sozinho(a), não necessitando de ajuda?','Apresenta comportamentos iguais aos das outras crianças da mesma idade?','Observa atentamente e retém informações a respeito das coisas que observa?','Expressa ideias com facilidade através de desenhos?']},{title:'ÁREA LINGUÍSTICA',qs:['Inicia conversas espontaneamente, trazendo assuntos diferenciados para sua idade?','Expressa ideias com facilidade oralmente ou por escrito?','Usa vocabulário avançado para sua idade?','Descreve um objeto de várias maneiras?','Tem facilidade para representar um objeto ou ideia de várias maneiras?']},{title:'ÁREA LÓGICO-MATEMÁTICA',qs:['Compreende conceitos numéricos para além dos números de 1 a 10?','Constrói uma estratégia para resolver um problema?','Faz perguntas para entender como as coisas funcionam?','Tem facilidade com quebra-cabeças utilizados por crianças maiores?','Demonstra habilidade ao usar o computador?']},{title:'ÁREA INTRAPESSOAL',qs:['Concentra-se em tópicos ou tarefas de seu interesse?','É persistente nas atividades que ele mesmo escolhe para fazer?','Manifesta senso de humor diferenciado para sua idade?','Costuma criar conflitos com os(as) amigos(as) porque suas ideias são diferentes?','Consegue rir das coisas engraçadas ou erradas que faz?']},{title:'ÁREA INTERPESSOAL',qs:['Prefere participar em atividades grupais?','Gosta de ensinar o que sabe para as demais crianças?','As outras crianças buscam a sua companhia para diferentes atividades?','Ajuda a resolver conflitos entre amigos(as)?']},{title:'ÁREA CORPORAL-CINESTÉSICA',qs:['Expressa ideias com facilidade através da dramatização?','Gosta de montar e desmontar objetos para ver como funcionam?','Prefere atividades que incluam o movimento, destacando-se pela harmonia?','Gosta de interpretar histórias, poemas e canções?']},{title:'ÁREA ESPACIAL',qs:['Junta objetos imaginativamente para construir algo?','Gosta de organizar e agrupar objetos?','Planeja cuidadosamente o uso do espaço?']},{title:'ÁREA MUSICAL',qs:['Reproduz com facilidade melodias e músicas que acabou de ouvir?','Canta ou cantarola, com ritmo e melodia, durante outras atividades?','Experimenta os objetos para criar sons diferentes?','Tem facilidade em aprender através da música?']},{title:'ÁREA NATURALÍSTICA',qs:['Fala muito sobre seus bichinhos de estimação ou sobre lugares preferidos na natureza?','Está preocupado(a) e defende os direitos dos animais e da natureza?','Gosta de fazer projetos que envolva a observação da natureza?']}];
+const A3_SECTIONS=[{title:'DESENVOLVIMENTO DA LINGUAGEM',qs:['Falou as primeiras palavras por volta dos seis meses','Falou as primeiras frases por volta dos 12 meses','Conseguiu construir uma conversa completa por volta dos dois anos de idade','Demonstrou um vocabulário avançado por volta dos dois anos','Demonstrou curiosidade em conhecer novas palavras por volta dos três anos','Reconheceu e classificou os membros familiares por volta dos dois anos']},{title:'DESENVOLVIMENTO COGNITIVO',qs:['Aprendeu a contar até dez por volta dos dois anos','Apresentou agilidade em montar quebra-cabeça com 20 peças por volta dos dois anos e meio','Apresentou muito interesse por tudo que lhe rodeia; perguntava pela origem das coisas por volta dos 18 meses','Aprendeu pelo menos seis cores por volta dos dois anos','Aprendeu a ler por volta dos três anos','Aprendeu a ler vários livros de forma rápida por volta dos quatro anos','Apresentou facilidade em memorizar histórias, músicas por volta dos dois anos','Interessou-se pela escrita ortográfica das palavras por volta dos três anos']},{title:'AUTOAJUDA',qs:['Facilidade com o controle de esfíncteres diurnas e noturnas por volta de um ano e meio','Escolhia sua própria roupa por volta dos dois anos','Se vestia sozinho(a) por volta dos dois anos e meio']},{title:'SOCIALIZAÇÃO',qs:['Se relacionava e gostava de brincar com crianças com mais idade por volta dos quatro anos','Apresentava características de liderança nas brincadeiras por volta dos três anos','Apresentou sensibilidade em ajudar por volta dos três anos','Apresentou características de perfeccionismo por volta dos cinco anos']},{title:'CRIATIVIDADE',qs:['Apresentou facilidade em desenvolver atividades artísticas, musicais ou físicas por volta dos quatro anos','Inventava histórias, jogos ou situações criativas com facilidade por volta dos quatro anos','Entendia e ria de situações engraçadas desde os quatro anos']}];
+const A12_PAIRS=[['Facilmente engajado','Relutante em engajar-se'],['Confiante','Hesitante'],['Brincalhão','Sério'],['Concentrado','Distraído'],['Persistente','Frustrado pela atividade'],['Impulsivo','Reflexivo'],['Propenso a trabalhar lentamente','Propenso a trabalhar rapidamente'],['Conversador','Quieto'],['Responde a pistas visuais/auditivas/cinestésicas','Demonstra abordagem planejadora'],['Emprega habilidades pessoais na tarefa','Diverte-se na área de conteúdo'],['Usa materiais de maneira inesperada','Demonstra orgulho pela realização'],['Presta atenção aos detalhes; é observador','É curioso sobre os materiais'],['Demonstra preocupação com a resposta "certa"','Concentra-se na interação com o adulto']];
+const A13_SECTIONS=[{title:'FLUÊNCIA',qs:['Capacidade de produzir um grande número de ideias','Habilidade de pensar soluções alternativas para um problema','Capacidade de gerar um grande número de respostas','Capacidade de pensar em muitas ideias e fazer muitos planos']},{title:'FLEXIBILIDADE',qs:['Habilidade de mudar sua forma de pensar sobre um problema ou situação','Capacidade de ver as coisas sob diferentes pontos de vista','Habilidade de pensar em ideias alternativas para diferentes situações','Capacidade de usar muitas e diferentes estratégias ou abordagens','Capacidade de fazer diferentes conexões e deixar o pensamento ir em várias direções']},{title:'ORIGINALIDADE',qs:['Habilidade de pensar em ideias, respostas e estilos incomuns','Capacidade em dar respostas infrequentes e raras','Habilidade de criar coisas novas, diferentes e únicas','Capacidade de sintetizar e reorganizar uma ideia em nova forma','Habilidade em dar respostas nas quais ninguém antes pensou']},{title:'ELABORAÇÃO',qs:['Habilidade de expandir uma ideia adicionando detalhes','Capacidade em dar respostas mais elaboradas e organizadas','Habilidade de desenvolver uma resposta, um estilo ou uma ideia, dando seus detalhes','Habilidade em clarificar ou melhorar uma ideia trabalhando seus aspectos constitutivos','Capacidade de adicionar detalhes específicos para melhorar uma ideia','Habilidade em ver problemas onde outros não veem']},{title:'EXPRESSÃO DAS EMOÇÕES',qs:['Capacidade de fantasiar e de se expressar espontaneamente','Capacidade de olhar o mundo sob uma perspectiva incomum','Sensibilidade de entrar em contato com si mesmo por uma perspectiva interna','Capacidade de entender o significado de uma ideia num contexto mais amplo','Habilidade de produzir humor; coragem para correr riscos']}];
+const DOMAINS={d_ling:{annexe:4,title:'Linguagem',icon:'📚',cols:['Não','Às Vezes','Sempre','Não Observei'],colClasses:['col-n','col-av','col-s','col-no'],sections:[{title:'Narrativa inventada / narração de histórias',qs:['É imaginativo(a) e original ao narrar histórias','Gosta de ouvir ou ler histórias','Revela interesse no planejamento de tramas, elaboração de personagens, descrição de cenários, uso de diálogos etc.','Demonstra talento dramático: estilo distinto, expressividade ou habilidade de desempenhar diversos papéis']},{title:'Linguagem descritiva / reportagem',qs:['Apresenta relatos coerentes de eventos, sentimentos e experiências com sequência correta e nível apropriado de detalhes','Rotula e descreve as coisas com exatidão','Demonstra interesse em explicar como as coisas funcionam ou em descrever um procedimento','Argumenta ou investiga de modo lógico']},{title:'Uso poético da linguagem / jogos de palavras',qs:['Aprecia e sabe fazer jogos de palavras, como trocadilhos, rimas e metáforas','Brinca com os significados e os sons das palavras','Demonstra interesse em aprender novas palavras','Usa as palavras de maneira divertida']}]},d_mat:{annexe:5,title:'Matemática',icon:'🔢',cols:['Não','Às Vezes','Sempre','Nunca Observei'],colClasses:['col-n','col-av','col-s','col-no'],sections:[{title:'Raciocínio numérico',qs:['É hábil em cálculo (encontra atalhos)','É capaz de fazer estimativas','É competente ao quantificar objetos e informações (mantendo registro, criando notações eficazes)','É capaz de identificar relações numéricas (probabilidade e razão)']},{title:'Raciocínio espacial',qs:['Descobre padrão espacial','É hábil em xadrez','Usa a imaginação para visualizar e conceituar um problema']},{title:'Solução lógica de problemas',qs:['Focaliza as relações e a estrutura global do problema, em vez de fatos isolados','Faz inferências lógicas','Generaliza regras','Desenvolve e usa estratégias (por exemplo, quando joga algum jogo)']}]},d_mus:{annexe:6,title:'Musical',icon:'🎵',cols:['Não','Às Vezes','Sempre','Nunca Observei'],colClasses:['col-n','col-av','col-s','col-no'],sections:[{title:'Percepção musical',qs:['É sensível à dinâmica (alto e baixo)','É sensível ao tempo e aos padrões rítmicos','Discrimina alturas de som','Identifica estilos musicais e de diferentes músicos','Identifica diferentes instrumentos e sons']},{title:'Produção musical',qs:['É capaz de manter um tom exato','É capaz de manter o tempo e os padrões rítmicos exatos','Revela expressividade quando canta ou toca algum instrumento','É capaz de lembrar ou reproduzir propriedades musicais de músicos e outras composições']},{title:'Composição musical',qs:['Cria composições simples com senso de início, meio e fim','Cria sistemas notacionais simples']}]},d_art:{annexe:7,title:'Artes Visuais',icon:'🎨',cols:['Não','Às Vezes','Sempre','Nunca Observei'],colClasses:['col-n','col-av','col-s','col-no'],sections:[{title:'Artes visuais: percepção',qs:['Tem consciência dos elementos visuais no ambiente e no trabalho de arte (cor, linha, formas, padrões, detalhes)','É sensível a estilos artísticos diferentes (capaz de distinguir arte abstrata de realismo, impressionismo etc.)']},{title:'Artes visuais: produção / representação',qs:['É capaz de representar o mundo visual com exatidão em duas ou três dimensões','É capaz de criar símbolos reconhecíveis para objetos comuns e coordenar elementos espacialmente em um todo unificado','Usa proporções realistas, características detalhadas e escolha deliberada de cores']},{title:'Talento artístico',qs:['É capaz de usar vários elementos de arte para descrever emoções, produzir certos efeitos e embelezar desenhos','Transmite claramente o humor através de representações literais e aspectos abstratos','Preocupa-se com a decoração e o embelezamento','Produz desenhos que são coloridos, equilibrados e rítmicos']},{title:'Exploração',qs:['É flexível e inventivo(a) no uso de materiais de arte (experimenta com tinta, giz, argila)','Usa linhas e formas para gerar uma grande variedade de formas em trabalhos bidimensionais ou tridimensionais','É capaz de executar assuntos ou temas variados (pessoas, animais, prédios, paisagens)']}]},d_cie:{annexe:8,title:'Ciências',icon:'🔬',cols:['Não','Às Vezes','Sempre','Nunca Observei'],colClasses:['col-n','col-av','col-s','col-no'],sections:[{title:'Habilidade de observação',qs:['Observa cuidadosamente os materiais para aprender sobre suas características físicas; usa um ou mais sentidos','Com frequência, percebe mudanças no meio ambiente (folhas novas, insetos, mudanças sazonais sutis)','Mostra interesse em registrar observações através de desenhos, gráficos, cartões sequenciais ou outros métodos']},{title:'Identificação de semelhanças e diferenças',qs:['Gosta de comparar e contrastar materiais, eventos ou ambos','Classifica materiais e nota semelhanças e diferenças entre espécies (compara caranguejo e aranha)']},{title:'Formação e experimentação de hipóteses',qs:['Faz predições com base em observações','Faz perguntas do tipo "e se?"; explica por que as coisas são como são','Realiza experimentos simples e tem ideias de experimentos para testar hipóteses próprias e alheias']},{title:'Interesse em fenômenos naturais/científicos',qs:['Revela vasto conhecimento sobre vários tópicos científicos; oferece espontaneamente informações sobre esses tópicos','Manifesta interesse por fenômenos naturais ou materiais relacionados ao longo de períodos prolongados','Costuma perguntar sobre as coisas que observa']}]},d_mov:{annexe:9,title:'Movimento',icon:'🤸',cols:['Não','Às Vezes','Sempre','Não Observei'],colClasses:['col-n','col-av','col-s','col-no'],sections:[{title:'Controle corporal',qs:['Revela consciência e capacidade de isolar e usar partes diferentes do corpo','Planeja, organiza uma sequência e executa movimentos eficientemente — não parecem aleatórios','Consegue repetir os próprios movimentos e os movimentos dos outros']},{title:'Sensibilidade ao ritmo',qs:['Move-se em sincronia com ritmos estáveis ou mutantes, especialmente na música','É capaz de estabelecer um ritmo próprio e regulá-lo para atingir um efeito desejado']},{title:'Expressividade',qs:['Evoca estado de ânimo e imagens através do movimento, usando gestos e posturas corporais','É capaz de responder ao tom ou à qualidade tonal de um instrumento ou seleção musical']},{title:'Criação de ideias de movimento',qs:['Tem ideias interessantes e novas de movimento, verbalmente, fisicamente ou ambos','Responde imediatamente a ideias e imagens com movimentos originais','Coreografa uma dança simples, ensinando-a aos outros']},{title:'Responsividade à música',qs:['Responde diferentemente a diferentes tipos de músicas','Revela sensibilidade ao ritmo e expressividade ao responder à música','Explora o espaço disponível (vertical e horizontal) com muita liberdade','Antecipa os outros em um espaço compartilhado','Experimenta movimentos do corpo no espaço (voltando-se e girando)']}]},d_esp:{annexe:10,title:'Espacial',icon:'🧩',cols:['Não','Às Vezes','Sempre','Nunca Observei'],colClasses:['col-n','col-av','col-s','col-no'],sections:[{title:'Compreensão de relações causais e funcionais',qs:['Infere relações com base na observação','Compreende a relação das partes com o todo, função dessas partes e como elas são montadas']},{title:'Capacidade visuoespacial',qs:['É capaz de construir ou reconstruir objetos físicos e máquinas simples em duas ou três dimensões','Compreende as relações espaciais entre as partes de um objeto mecânico']},{title:'Solução de problemas com objetos mecânicos',qs:['Usa a abordagem de tentativa e erro, e aprende a partir dela','Usa uma abordagem sistemática para resolver problemas mecânicos','Compara e generaliza informações']},{title:'Habilidades motoras finas',qs:['É hábil ao manipular objetos ou partes pequenas','Exibe boa coordenação mão-olho (bate com o martelo no prego e não nos dedos)']}]},d_soc:{annexe:11,title:'Social',icon:'👥',cols:['Não','Às Vezes','Sempre','Não Observei'],colClasses:['col-n','col-av','col-s','col-no'],sections:[{title:'Entendimento de si mesmo',qs:['Identifica as próprias capacidades, habilidades, interesses e áreas de dificuldade','Reflete sobre os próprios sentimentos, experiências e realizações','Utiliza essas reflexões para compreender e orientar o próprio comportamento','Demonstra insight sobre os fatores que levam alguém a se sair bem ou ter dificuldade']},{title:'Entendimento do outro',qs:['Demonstra conhecer os colegas e suas atividades','Presta atenção aos outros','Reconhece os pensamentos, os sentimentos e as capacidades alheias','Tira conclusões sobre os outros com base em suas atividades']},{title:'Vivência de papéis sociais distintos / líder',qs:['Frequentemente inicia e organiza atividades','Organiza as outras crianças','Atribui papéis aos outros','Explica como a atividade é realizada','Supervisiona e dirige atividades']},{title:'Facilitador',qs:['Frequentemente compartilha ideias, informações e habilidades com outras crianças','Medeia conflitos','Convida outras crianças para brincar','Amplia e elabora as ideias das outras crianças','Oferece ajuda quando os outros precisam de atenção']},{title:'Cuidador / amigo',qs:['Consola as outras crianças quando elas estão chateadas','Demonstra sensibilidade aos sentimentos das outras crianças','Demonstra saber do que os amigos gostam e não gostam']}]}};
+
+const LABELS={
+  a1:{label:'Anexo 1 — Entrevista Pais',icon:'🗣️',tag:'Anexo 1'},
+  a2:{label:'Anexo 2 — Indicadores',icon:'📋',tag:'Anexo 2'},
+  a3:{label:'Anexo 3 — Primeira Infância',icon:'✅',tag:'Anexo 3'},
+  d_ling:{label:'Linguagem',icon:'📚',tag:'Anexo 4'},
+  d_mat:{label:'Matemática',icon:'🔢',tag:'Anexo 5'},
+  d_mus:{label:'Musical',icon:'🎵',tag:'Anexo 6'},
+  d_art:{label:'Artes Visuais',icon:'🎨',tag:'Anexo 7'},
+  d_cie:{label:'Ciências',icon:'🔬',tag:'Anexo 8'},
+  d_mov:{label:'Movimento',icon:'🤸',tag:'Anexo 9'},
+  d_esp:{label:'Espacial',icon:'🧩',tag:'Anexo 10'},
+  d_soc:{label:'Social',icon:'👥',tag:'Anexo 11'},
+  a12:{label:'Anexo 12 — Estilo de Trabalho',icon:'⚙️',tag:'Anexo 12'},
+  a13:{label:'Anexo 13 — Criatividade',icon:'💡',tag:'Anexo 13'},
+  a16:{label:'Anexo 16 — Pós-identificação',icon:'📝',tag:'Anexo 16'},
+};
+
+// ════════════════════════════════════════
+// ESTADO
+// ════════════════════════════════════════
+let params, questionarioIds, stepAtual = 0;
+let respostasColetadas = {};
+let dadosIdentificacao = {};
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  params = new URLSearchParams(location.search);
+  const qsParam = params.get('qs') || '';
+
+  if (!qsParam) {
+    renderSemLink(); return;
+  }
+
+  questionarioIds = qsParam.split(',').filter(id => LABELS[id]);
+  if (!questionarioIds.length) { renderSemLink(); return; }
+
+  // Mostra tela de identificação primeiro
+  renderIdentificacao();
+});
+
+// ════════════════════════════════════════
+// SEM LINK VÁLIDO
+// ════════════════════════════════════════
+function renderSemLink() {
+  document.getElementById('main-content').innerHTML = `
+    <div class="no-link">
+      <div class="icon">🔗</div>
+      <h2>Link inválido</h2>
+      <p>Este link não contém os dados necessários.<br>Peça ao avaliador um link válido.</p>
+    </div>`;
+}
+
+// ════════════════════════════════════════
+// TELA DE IDENTIFICAÇÃO (passo 0)
+// ════════════════════════════════════════
+function renderIdentificacao() {
+  document.getElementById('stepper').style.display = 'none';
+  document.getElementById('nav-fixed').style.display = 'none';
+  document.getElementById('topbar-aluno').textContent = 'Identificação';
+
+  const nQs = questionarioIds.length;
+  const lista = questionarioIds.map(id => `<span style="display:inline-flex;align-items:center;gap:.3rem;background:#ede9fe;color:var(--accent);font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:4px">${LABELS[id]?.icon||''} ${LABELS[id]?.tag||id}</span>`).join(' ');
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="card active">
+      <div style="text-align:center;padding:.5rem 0 1.25rem">
+        <div style="font-size:2.5rem;margin-bottom:.75rem">🧠</div>
+        <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:.4rem">Questionário AH/SD</h2>
+        <p style="color:var(--gray);font-size:.875rem;line-height:1.5">
+          Você receberá <strong>${nQs} questionário${nQs>1?'s':''}</strong> para preencher.<br>
+          Antes de começar, preencha os dados de identificação abaixo.
+        </p>
+        <div style="margin-top:.75rem;display:flex;flex-wrap:wrap;gap:.35rem;justify-content:center">${lista}</div>
+      </div>
+
+      <div style="background:var(--surface2);border-radius:10px;padding:1.25rem;border:1px solid var(--border)">
+        <div class="card-title" style="border-bottom:none;padding-bottom:0;margin-bottom:.75rem">📋 Identificação</div>
+        <div class="form-grid">
+          <div class="form-group" style="grid-column:1/-1">
+            <label>Nome da Criança *</label>
+            <input type="text" id="ident-nome" placeholder="Nome completo do aluno(a)" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>Escola *</label>
+            <input type="text" id="ident-escola" placeholder="Nome da escola" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>Série / Turma</label>
+            <input type="text" id="ident-serie" placeholder="Ex: 3º ano A">
+          </div>
+          <div class="form-group">
+            <label>Seu nome (responsável)</label>
+            <input type="text" id="ident-responsavel" placeholder="Seu nome">
+          </div>
+        </div>
+        <div class="val-panel" id="val-ident"></div>
+      </div>
+
+      <div class="btn-bar" style="justify-content:flex-end">
+        <button class="btn btn-primary" onclick="confirmarIdentificacao()" style="min-width:160px">
+          Começar →
+        </button>
+      </div>
+    </div>`;
+}
+
+function confirmarIdentificacao() {
+  const nome  = document.getElementById('ident-nome').value.trim();
+  const escola= document.getElementById('ident-escola').value.trim();
+  if (!nome) {
+    mostrarErros('val-ident', [{num:'—', text:'Nome da criança é obrigatório', sec:''}]);
+    return;
+  }
+  if (!escola) {
+    mostrarErros('val-ident', [{num:'—', text:'Nome da escola é obrigatório', sec:''}]);
+    return;
+  }
+
+  // Salva dados no objeto params para uso posterior
+  dadosIdentificacao = {
+    aluno:       nome,
+    escola:      escola,
+    serie:       document.getElementById('ident-serie').value.trim(),
+    responsavel: document.getElementById('ident-responsavel').value.trim(),
+  };
+
+  document.getElementById('topbar-aluno').textContent = `👤 ${nome}`;
+  document.title = `Questionário AH/SD — ${nome}`;
+
+  document.getElementById('stepper').style.display = '';
+  document.getElementById('nav-fixed').style.display = 'flex';
+  buildStepper();
+  renderStep(0);
+  atualizarNav();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ════════════════════════════════════════
+// STEPPER
+// ════════════════════════════════════════
+function buildStepper() {
+  const s = document.getElementById('stepper');
+  s.innerHTML = '';
+  questionarioIds.forEach((id, i) => {
+    const info = LABELS[id] || {};
+    if (i > 0) {
+      const line = document.createElement('div');
+      line.className = 'step-line'; line.id = `line-${i}`;
+      s.appendChild(line);
+    }
+    const step = document.createElement('div');
+    step.className = 'step' + (i===0?' active':'');
+    step.id = `step-${i}`;
+    step.innerHTML = `<div class="step-dot">${info.icon||'📄'}</div><div class="step-label">${info.tag||id}</div>`;
+    step.onclick = () => { if (i <= stepAtual) irParaStep(i); };
+    s.appendChild(step);
+  });
+}
+
+function atualizarStepper() {
+  questionarioIds.forEach((id, i) => {
+    const s = document.getElementById(`step-${i}`);
+    const l = document.getElementById(`line-${i}`);
+    if (!s) return;
+    s.className = 'step' + (i===stepAtual?' active':'') + (i<stepAtual?' done':'');
+    if (i<stepAtual) s.querySelector('.step-dot').textContent = '✓';
+    else s.querySelector('.step-dot').textContent = LABELS[id]?.icon||'📄';
+    if (l) l.className = 'step-line' + (i<=stepAtual?' done':'');
+  });
+}
+
+// ════════════════════════════════════════
+// NAVEGAÇÃO
+// ════════════════════════════════════════
+function atualizarNav() {
+  document.getElementById('nav-current').textContent = stepAtual+1;
+  document.getElementById('nav-total').textContent   = questionarioIds.length;
+  document.getElementById('btn-prev').style.display  = stepAtual>0?'':'none';
+  const isLast = stepAtual === questionarioIds.length-1;
+  document.getElementById('btn-next').style.display   = isLast?'none':'';
+  document.getElementById('btn-submit').style.display = isLast?'':'none';
+  document.getElementById('progress-topbar').style.width = ((stepAtual+1)/questionarioIds.length*100)+'%';
+}
+
+function irPara(delta) {
+  const id = questionarioIds[stepAtual];
+  if (delta > 0) {
+    const erros = validar(id);
+    if (erros.length) {
+      mostrarErros(`val-${id}`, erros); return;
+    }
+    coletarRespostas(id);
+    limparErros(`val-${id}`);
+  }
+  irParaStep(stepAtual + delta);
+}
+
+function irParaStep(idx) {
+  stepAtual = Math.max(0, Math.min(idx, questionarioIds.length-1));
+  renderStep(stepAtual);
+  atualizarNav();
+  atualizarStepper();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ════════════════════════════════════════
+// RENDER STEP
+// ════════════════════════════════════════
+function renderStep(idx) {
+  const id   = questionarioIds[idx];
+  const main = document.getElementById('main-content');
+  main.innerHTML = '';
+
+  const info = LABELS[id] || {};
+  let html = `<div class="card active">
+    <div class="page-tag">${info.tag||id}</div>
+    <div class="page-header">
+      <h2>${info.icon||''} ${info.label||id}</h2>
+      <p>Aluno(a): <strong>${dadosIdentificacao.aluno||''}</strong>${dadosIdentificacao.escola?' · '+dadosIdentificacao.escola:''}</p>
+    </div>`;
+
+  if (id === 'a1') {
+    html += buildOpenForm('a1', A1_QUESTIONS);
+  } else if (id === 'a2') {
+    html += buildTableForm('a2', A2_SECTIONS, ['col-n','col-av','col-s','col-no'], ['nao','algumas','sempre','nao-obs'], ['Não','Às Vezes','Sempre','Não Obs.'], ['lbl-n','lbl-av','lbl-s','lbl-no']);
+  } else if (id === 'a3') {
+    html += buildSNForm();
+  } else if (id === 'a12') {
+    html += buildA12Form();
+  } else if (id === 'a13') {
+    html += buildTableForm('a13', A13_SECTIONS, ['col-s','col-n','col-av','col-no'], ['sempre','nao','algumas','nao-obs'], ['Sempre','Não','Às Vezes','Não Obs.'], ['lbl-s','lbl-n','lbl-av','lbl-no']);
+  } else if (id === 'a16') {
+    html += buildOpenForm('a16', A16_QUESTIONS);
+  } else if (DOMAINS[id]) {
+    html += buildDomainForm(id);
+  }
+
+  html += `<div class="val-panel" id="val-${id}"></div></div>`;
+  main.innerHTML = html;
+}
+
+// ════════════════════════════════════════
+// FORM BUILDERS
+// ════════════════════════════════════════
+function buildOpenForm(prefix, questions) {
+  return questions.map((q,i)=>
+    `<div class="open-q"><label><span class="qn">${i+1}.</span>${q}</label>
+     <textarea id="${prefix}_q${i}" placeholder="Sua resposta..."></textarea></div>`
+  ).join('');
+}
+
+function buildTableForm(prefix, sections, colClasses, vals, colLabels, lblClasses) {
+  let qn=0, html=`<table class="q-table"><colgroup><col>${colClasses.map(()=>`<col style="width:12%">`).join('')}</colgroup><thead><tr><th></th>${colLabels.map(l=>`<th>${l}</th>`).join('')}</tr></thead><tbody>`;
+  sections.forEach(sec=>{
+    html+=`<tr class="sec-hdr"><td>${sec.title}</td>${lblClasses.map((c,i)=>`<td><span class="sec-hdr-label ${c}">${colLabels[i]}</span></td>`).join('')}</tr>`;
+    sec.qs.forEach(q=>{
+      qn++;
+      html+=`<tr><td><span class="q-num">${qn}.</span>${q}</td>`;
+      colClasses.forEach((cls,ci)=>{
+        html+=`<td class="${cls}"><input type="radio" name="${prefix}q${qn}" id="${prefix}q${qn}_${ci}" value="${vals[ci]}"><label class="rl" for="${prefix}q${qn}_${ci}">✓</label></td>`;
+      });
+      html+='</tr>';
+    });
+  });
+  html+='</tbody></table>';
+  const total=qn;
+  return `<div class="progress-wrap"><div class="progress-row"><strong>Progresso</strong><span id="${prefix}-txt">0 / ${total} respondidas</span></div><div class="prog-bg"><div class="prog-fill" id="${prefix}-bar" style="width:0%"></div></div></div>`
+    + html.replace(/<input type="radio"/g, `<input type="radio" onchange="updateProg('${prefix}',${total})"`);
+}
+
+function buildSNForm() {
+  let qn=0, html='', total=A3_SECTIONS.reduce((s,sec)=>s+sec.qs.length,0);
+  A3_SECTIONS.forEach(sec=>{
+    html+=`<table class="sn-table"><tbody><tr class="sec-hdr"><td>${sec.title}</td><td><span class="sec-hdr-label lbl-sim">SIM</span></td><td><span class="sec-hdr-label lbl-nao">NÃO</span></td></tr>`;
+    sec.qs.forEach(q=>{
+      qn++;
+      html+=`<tr><td><span class="q-num">${qn}.</span>${q}</td>
+        <td class="col-sim"><input type="radio" name="a3q${qn}" id="a3q${qn}_s" value="sim" onchange="updateProg('a3',${total})"><label class="sl" for="a3q${qn}_s">S</label></td>
+        <td class="col-nao"><input type="radio" name="a3q${qn}" id="a3q${qn}_n" value="nao" onchange="updateProg('a3',${total})"><label class="sl" for="a3q${qn}_n">N</label></td></tr>`;
+    });
+    html+='</tbody></table>';
+  });
+  return `<div class="progress-wrap"><div class="progress-row"><strong>Progresso</strong><span id="a3-txt">0 / ${total} respondidas</span></div><div class="prog-bg"><div class="prog-fill" id="a3-bar" style="width:0%"></div></div></div>`+html;
+}
+
+function buildDomainForm(id) {
+  const dom=DOMAINS[id]; let qn=0;
+  const total=dom.sections.reduce((s,sec)=>s+sec.qs.length,0);
+  const colLblClasses=['lbl-n','lbl-av','lbl-s','lbl-no'];
+  let html=`<table class="q-table"><colgroup><col>${dom.colClasses.map(()=>`<col style="width:12%">`).join('')}</colgroup><tbody>`;
+  dom.sections.forEach(sec=>{
+    html+=`<tr class="sec-hdr"><td>${sec.title}</td>${dom.cols.map((c,ci)=>`<td><span class="sec-hdr-label ${colLblClasses[ci]||''}">${c}</span></td>`).join('')}</tr>`;
+    sec.qs.forEach(q=>{
+      qn++;
+      html+=`<tr><td><span class="q-num">${qn}.</span>${q}</td>`;
+      dom.colClasses.forEach((cls,ci)=>{
+        html+=`<td class="${cls}"><input type="radio" name="${id}q${qn}" id="${id}q${qn}_${ci}" value="${ci}" onchange="updateProg('${id}',${total})"><label class="rl" for="${id}q${qn}_${ci}">✓</label></td>`;
+      });
+      html+='</tr>';
+    });
+  });
+  html+='</tbody></table>';
+  return `<div class="progress-wrap"><div class="progress-row"><strong>Progresso</strong><span id="${id}-txt">0 / ${total} respondidas</span></div><div class="prog-bg"><div class="prog-fill" id="${id}-bar" style="width:0%"></div></div></div>`+html;
+}
+
+function buildA12Form() {
+  const total=A12_PAIRS.length*2;
+  let qn=0, html=`<div style="background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:6px;padding:.45rem .9rem;margin-bottom:.5rem;display:flex;align-items:center"><span style="flex:1;font-size:.78rem;font-weight:700;color:#fff">ESTILO DE TRABALHO</span><div style="display:flex;gap:1rem;flex-shrink:0"><span style="font-size:.65rem;font-weight:800;color:#fca5a5;text-transform:uppercase">Não</span><span style="font-size:.65rem;font-weight:800;color:#fcd34d;text-transform:uppercase">Às Vezes</span><span style="font-size:.65rem;font-weight:800;color:#6ee7b7;text-transform:uppercase">Sempre</span><span style="font-size:.65rem;font-weight:800;color:#d1d5db;text-transform:uppercase">Não Obs.</span></div></div>`;
+  A12_PAIRS.forEach((pair,i)=>{
+    pair.forEach((char,side)=>{
+      qn++;
+      const colors=['var(--red)','var(--amber)','var(--green)','var(--gray)'];
+      html+=`<div class="a12-pair-row"><span style="color:var(--accent);font-weight:700;font-size:.8rem;width:24px;flex-shrink:0;padding-top:.1rem">${qn}.</span><span style="flex:1;font-size:.84rem">${char}</span><div style="display:flex;gap:.5rem;flex-shrink:0">${['Não','Às Vezes','Sempre','Não Obs.'].map((lbl,vi)=>`<label style="display:flex;flex-direction:column;align-items:center;gap:.2rem;cursor:pointer;font-size:.65rem;color:var(--gray)"><input type="radio" name="a12q${qn}" value="${vi}" onchange="updateProg('a12',${total})" style="display:none"><span class="a12-dot" data-name="a12q${qn}" data-val="${vi}" onclick="pickA12(this,'${colors[vi]}')" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.55rem;transition:all .15s">✓</span>${lbl}</label>`).join('')}</div></div>`;
+    });
+  });
+  return `<div class="progress-wrap"><div class="progress-row"><strong>Progresso</strong><span id="a12-txt">0 / ${total} respondidas</span></div><div class="prog-bg"><div class="prog-fill" id="a12-bar" style="width:0%"></div></div></div>`+html;
+}
+
+// ════════════════════════════════════════
+// A12 DOT PICKER
+// ════════════════════════════════════════
+function pickA12(el, color) {
+  const name=el.dataset.name;
+  document.querySelectorAll(`[data-name="${name}"]`).forEach(d=>{
+    d.style.background='';d.style.borderColor='var(--border)';d.style.color='var(--gray)';
+    d.previousElementSibling.checked=false;
+  });
+  el.style.background=color;el.style.borderColor=color;el.style.color='#fff';
+  el.previousElementSibling.checked=true;
+  const total=A12_PAIRS.length*2;
+  let ans=0;
+  for(let i=1;i<=total;i++){if(document.querySelector(`input[name="a12q${i}"]:checked`))ans++;}
+  const bar=document.getElementById('a12-bar');const txt=document.getElementById('a12-txt');
+  if(bar)bar.style.width=(ans/total*100)+'%';
+  if(txt)txt.textContent=`${ans} / ${total} avaliadas`;
+}
+
+// ════════════════════════════════════════
+// PROGRESS
+// ════════════════════════════════════════
+function updateProg(prefix, total) {
+  let ans=0;
+  for(let i=1;i<=total;i++){if(document.querySelector(`input[name="${prefix}q${i}"]:checked`))ans++;}
+  const bar=document.getElementById(`${prefix}-bar`);
+  const txt=document.getElementById(`${prefix}-txt`);
+  if(bar)bar.style.width=(ans/total*100)+'%';
+  if(txt)txt.textContent=`${ans} / ${total} respondidas`;
+}
+
+// ════════════════════════════════════════
+// COLETAR RESPOSTAS
+// ════════════════════════════════════════
+function coletarRespostas(id) {
+  const res = {};
+  if (id === 'a1') {
+    const secao = {};
+    A1_QUESTIONS.forEach((q,i)=>{ secao[q]=(document.getElementById(`a1_q${i}`)?.value||''); });
+    res['Questões']=secao;
+  } else if (id === 'a16') {
+    const secao={};
+    A16_QUESTIONS.forEach((q,i)=>{ secao[q]=(document.getElementById(`a16_q${i}`)?.value||''); });
+    res['Questões']=secao;
+  } else if (id === 'a2') {
+    let qn=0;
+    A2_SECTIONS.forEach(sec=>{ const s={}; sec.qs.forEach(q=>{ qn++; const c=document.querySelector(`input[name="a2q${qn}"]:checked`); s[q]=c?c.value:''; }); res[sec.title]=s; });
+  } else if (id === 'a3') {
+    let qn=0;
+    A3_SECTIONS.forEach(sec=>{ const s={}; sec.qs.forEach(q=>{ qn++; const c=document.querySelector(`input[name="a3q${qn}"]:checked`); s[q]=c?c.value:''; }); res[sec.title]=s; });
+  } else if (id === 'a12') {
+    const total=A12_PAIRS.length*2; const valMap=['Não','Às Vezes','Sempre','Não Observado']; const s={};
+    A12_PAIRS.forEach((pair,i)=>{ pair.forEach((char,side)=>{ const qn=i*2+side+1; const c=document.querySelector(`input[name="a12q${qn}"]:checked`); s[char]=c?valMap[parseInt(c.value)]:''; }); });
+    res['ESTILO DE TRABALHO']=s;
+  } else if (id === 'a13') {
+    let qn=0;
+    A13_SECTIONS.forEach(sec=>{ const s={}; sec.qs.forEach(q=>{ qn++; const c=document.querySelector(`input[name="a13q${qn}"]:checked`); s[q]=c?c.value:''; }); res[sec.title]=s; });
+  } else if (DOMAINS[id]) {
+    const dom=DOMAINS[id]; let qn=0;
+    dom.sections.forEach(sec=>{ const s={}; sec.qs.forEach(q=>{ qn++; const c=document.querySelector(`input[name="${id}q${qn}"]:checked`); s[q]=c?(dom.cols[parseInt(c.value)]||c.value):''; }); res[sec.title]=s; });
+  }
+  respostasColetadas[id] = res;
+}
+
+// ════════════════════════════════════════
+// VALIDAÇÃO
+// ════════════════════════════════════════
+function validar(id) {
+  const erros = [];
+  if (id === 'a1') {
+    A1_QUESTIONS.forEach((q,i)=>{ if(!(document.getElementById(`a1_q${i}`)?.value||'').trim()) erros.push({num:i+1,text:q.substring(0,80),sec:''}); });
+  } else if (id === 'a16') {
+    A16_QUESTIONS.forEach((q,i)=>{ if(!(document.getElementById(`a16_q${i}`)?.value||'').trim()) erros.push({num:i+1,text:q.substring(0,80),sec:''}); });
+  } else if (id === 'a2') {
+    let qn=0; A2_SECTIONS.forEach(sec=>{ sec.qs.forEach(q=>{ qn++; if(!document.querySelector(`input[name="a2q${qn}"]:checked`)) erros.push({num:qn,text:q.substring(0,80),sec:sec.title}); }); });
+  } else if (id === 'a3') {
+    let qn=0; A3_SECTIONS.forEach(sec=>{ sec.qs.forEach(q=>{ qn++; if(!document.querySelector(`input[name="a3q${qn}"]:checked`)) erros.push({num:qn,text:q.substring(0,80),sec:sec.title}); }); });
+  } else if (id === 'a12') {
+    const total=A12_PAIRS.length*2; A12_PAIRS.forEach((pair,i)=>{ pair.forEach((char,side)=>{ const qn=i*2+side+1; if(!document.querySelector(`input[name="a12q${qn}"]:checked`)) erros.push({num:qn,text:char,sec:''}); }); });
+  } else if (id === 'a13') {
+    let qn=0; A13_SECTIONS.forEach(sec=>{ sec.qs.forEach(q=>{ qn++; if(!document.querySelector(`input[name="a13q${qn}"]:checked`)) erros.push({num:qn,text:q.substring(0,80),sec:sec.title}); }); });
+  } else if (DOMAINS[id]) {
+    const dom=DOMAINS[id]; let qn=0; dom.sections.forEach(sec=>{ sec.qs.forEach(q=>{ qn++; if(!document.querySelector(`input[name="${id}q${qn}"]:checked`)) erros.push({num:qn,text:q.substring(0,80),sec:sec.title}); }); });
+  }
+  return erros;
+}
+
+function mostrarErros(panelId, erros) {
+  const p=document.getElementById(panelId); if(!p) return;
+  const items=erros.map(e=>`<li><span class="val-num">${e.num}</span><span>${e.text}${e.text.length>=80?'…':''}</span>${e.sec?`<span class="val-sec">${e.sec}</span>`:''}</li>`).join('');
+  p.innerHTML=`<div class="val-panel-title">⚠️ ${erros.length} pergunta${erros.length>1?'s':''} sem resposta — preencha antes de continuar</div><ul class="val-list">${items}</ul>`;
+  p.classList.add('open');
+  p.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function limparErros(panelId) {
+  const p=document.getElementById(panelId); if(p){p.classList.remove('open');p.innerHTML='';}
+}
+
+// ════════════════════════════════════════
+// ENVIAR TUDO
+// ════════════════════════════════════════
+async function enviarTudo() {
+  const id = questionarioIds[stepAtual];
+  const erros = validar(id);
+  if (erros.length) { mostrarErros(`val-${id}`, erros); return; }
+  coletarRespostas(id);
+
+  const aluno  = dadosIdentificacao.aluno       || '';
+  const escola = dadosIdentificacao.escola      || '';
+  const serie  = dadosIdentificacao.serie       || '';
+  const resp   = dadosIdentificacao.responsavel || '';
+  const linkId = params.get('id') || '';
+
+  // Enviar uma requisição por questionário
+  const promises = questionarioIds.map(qid => {
+    const payload = {
+      tipo: 'resposta', aluno, escola, serie, responsavel: resp, linkId,
+      instrumento: LABELS[qid]?.label || qid,
+      respostas: respostasColetadas[qid] || {}
+    };
+    if (!APPS_SCRIPT_URL) return Promise.resolve();
+    return fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }).catch(()=>{});
+  });
+
+  document.getElementById('btn-submit').disabled = true;
+  document.getElementById('btn-submit').textContent = '⏳ Enviando...';
+
+  await Promise.allSettled(promises);
+
+  // Tela de sucesso
+  document.getElementById('nav-fixed').style.display = 'none';
+  document.getElementById('stepper').style.display   = 'none';
+  document.getElementById('progress-topbar').style.width = '100%';
+  document.getElementById('main-content').innerHTML  = `
+    <div class="card active">
+      <div class="success-screen">
+        <div class="icon">✅</div>
+        <h2>Respostas enviadas!</h2>
+        <p>Obrigado por responder os questionários de <strong>${aluno}</strong>.<br>
+        O avaliador receberá suas respostas automaticamente.<br><br>
+        Você já pode fechar esta página.</p>
+      </div>
+    </div>`;
+}
+
+// ════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════
+function toast(msg, color='#5b5bd6') {
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.background=color;
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
