@@ -415,11 +415,23 @@ function toggleSidebar(){
 // CONFIG
 function getScriptUrl(){return localStorage.getItem('ahsd_script_url')||'';}
 function getBaseUrl(){return (localStorage.getItem('ahsd_base_url')||'').replace(/\/$/,'');}
+function isValidAppsScriptUrl(url) {
+  return typeof url === 'string' && /\/exec(?:\?.*)?$/.test(url.trim());
+}
 function salvarConfig(){
-  localStorage.setItem('ahsd_script_url', document.getElementById('script-url').value.trim());
-  localStorage.setItem('ahsd_base_url',   document.getElementById('base-url').value.trim());
-  var m=document.getElementById('config-msg'); m.style.display='block';
-  setTimeout(function(){m.style.display='none';},2000);
+  var scriptUrl=document.getElementById('script-url').value.trim();
+  var baseUrl=document.getElementById('base-url').value.trim();
+  var m=document.getElementById('config-msg');
+  if(scriptUrl && !isValidAppsScriptUrl(scriptUrl)){
+    m.textContent='⚠️ A URL do Apps Script deve ser a URL de implantação final e terminar em /exec.';
+    m.style.display='block';
+    return;
+  }
+  localStorage.setItem('ahsd_script_url', scriptUrl);
+  localStorage.setItem('ahsd_base_url', baseUrl);
+  m.textContent='✅ Salvo!';
+  m.style.display='block';
+  setTimeout(function(){m.style.display='none';m.textContent='✅ Salvo!';},2000);
   atualizarStatus();
 }
 function abrirConfig(){
@@ -479,11 +491,13 @@ function gerarLink(){
   if(!sel.size){toast('⚠️ Selecione pelo menos 1 questionário','#d97706');return;}
   var base=getBaseUrl();
   if(!base){toast('⚠️ Configure a URL do site nas Configurações','#d97706');abrirConfig();return;}
-  var label=document.getElementById('aluno-nome').value.trim()||'Sem identificação';
   var script=getScriptUrl();
+  if(!script){toast('⚠️ Configure o Apps Script nas Configurações','#d97706');abrirConfig();return;}
+  var label=document.getElementById('aluno-nome').value.trim()||'Sem identificação';
   var linkId=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   var qs=[...sel].join(',');
-  var url=base+'/index.html?'+new URLSearchParams({qs:qs,id:linkId}).toString();
+  var params={qs:qs,id:linkId,script:script};
+  var url=base+'/index.html?'+new URLSearchParams(params).toString();
   document.getElementById('link-gerado').textContent=url;
   document.getElementById('link-abrir').href=url;
   document.getElementById('link-result').classList.add('show');
@@ -492,7 +506,7 @@ function gerarLink(){
   local.unshift({data:new Date().toLocaleString('pt-BR'),label:label,questionarios:qs,linkId:linkId,url:url,respostas:0});
   localStorage.setItem('ahsd_links',JSON.stringify(local));
   atualizarBadges();
-  if(script){fetch(script,{method:'POST',body:JSON.stringify({tipo:'link',label:label,questionarios:[...sel],linkId:linkId,url:url})}).catch(function(){});}
+  fetch(script,{method:'POST',body:JSON.stringify({tipo:'link',label:label,questionarios:[...sel],linkId:linkId,url:url})}).catch(function(){});
   toast('✅ Link gerado!','#059669');
 }
 function copiarLink(){
@@ -521,7 +535,8 @@ function jsonp(url, callback) {
 async function carregarLinks(){
   var local=JSON.parse(localStorage.getItem('ahsd_links')||'[]');
   if(local.length) renderLinks(local);
-  var script=getScriptUrl(); if(!script) return;
+  var script=getScriptUrl();
+  if(!script || !isValidAppsScriptUrl(script)) return;
   jsonp(script+'?tipo=links', function(err, data) {
     if(!err && Array.isArray(data) && data.length) {
       localStorage.setItem('ahsd_links', JSON.stringify(data));
@@ -557,6 +572,10 @@ async function carregarRespostas(){
   var c=document.getElementById('respostas-container');
   var script=getScriptUrl();
   if(!script){c.innerHTML='<div class="empty"><div class="ei">⚙️</div><p>Configure o Apps Script nas <button onclick="abrirConfig()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-weight:700">Configurações</button> primeiro.</p></div>';return;}
+  if(!isValidAppsScriptUrl(script)){
+    c.innerHTML='<div class="empty"><div class="ei">⚠️</div><p>URL do Apps Script inválida. Use a URL de implantação final que termina em <strong>/exec</strong>.</p></div>';
+    return;
+  }
   c.innerHTML='<div class="empty"><div class="ei">⏳</div><p>Carregando...</p></div>';
   jsonp(script+'?tipo=respostas', function(err, data) {
     if(err){c.innerHTML='<div class="empty"><div class="ei">❌</div><p>Erro ao carregar. Verifique a URL do Apps Script e reimplante o script atualizado.</p></div>';return;}
