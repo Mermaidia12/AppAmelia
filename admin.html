@@ -378,6 +378,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--surface2);color:var(--ink
 <div id="toast"></div>
 
 <script>
+const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzK0E0gQkfsrKnsXqSZHHrbJentSODlm2dsMwVChsFoCA0eje5BwkvTp-hZhq4PhVFq/exec';
+const DEFAULT_BASE_URL = 'https://mermaidia12.github.io/AppAmelia';
+
 const QS = [
   {id:'a1',    label:'Anexo 1 — Entrevista Pais',      icon:'🗣️',tag:'PAIS'},
   {id:'a2',    label:'Anexo 2 — Indicadores',          icon:'📋',tag:'PROF/PAIS'},
@@ -413,8 +416,12 @@ function toggleSidebar(){
 }
 
 // CONFIG
-function getScriptUrl(){return localStorage.getItem('ahsd_script_url')||'';}
-function getBaseUrl(){return (localStorage.getItem('ahsd_base_url')||'').replace(/\/$/,'');}
+function getScriptUrl(){
+  return localStorage.getItem('ahsd_script_url') || DEFAULT_APPS_SCRIPT_URL || '';
+}
+function getBaseUrl(){
+  return (localStorage.getItem('ahsd_base_url') || DEFAULT_BASE_URL || '').replace(/\/$/, '');
+}
 function isValidAppsScriptUrl(url) {
   return typeof url === 'string' && /\/exec(?:\?.*)?$/.test(url.trim());
 }

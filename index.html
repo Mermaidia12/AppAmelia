@@ -193,6 +193,7 @@ tr.sec-hdr td:last-child{border-radius:0 6px 6px 0}
 // ═════════════════════════════════════════
 // APPS SCRIPT URL — configure aqui
 // ═════════════════════════════════════════
+const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzK0E0gQkfsrKnsXqSZHHrbJentSODlm2dsMwVChsFoCA0eje5BwkvTp-hZhq4PhVFq/exec';
 function getAppsScriptUrl() {
   const params = new URLSearchParams(location.search);
   const scriptUrl = params.get('script');
@@ -200,7 +201,7 @@ function getAppsScriptUrl() {
     localStorage.setItem('ahsd_script_url', scriptUrl);
     return scriptUrl;
   }
-  return localStorage.getItem('ahsd_script_url') || '';
+  return localStorage.getItem('ahsd_script_url') || DEFAULT_APPS_SCRIPT_URL || '';
 }
 const APPS_SCRIPT_URL = getAppsScriptUrl();
 
