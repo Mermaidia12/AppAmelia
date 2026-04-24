@@ -5,6 +5,7 @@ Uso:
   python test_fetch_responses.py --script-url "https://script.google.com/macros/s/XXX/exec"
 
 O script tenta obter:
+  - ping (?tipo=ping)
   - respostas (?tipo=respostas)
   - links (?tipo=links)
 
@@ -48,6 +49,23 @@ def fetch_url(url):
     return raw, content_type
 
 
+def post_json(url, payload):
+    req = Request(
+        url,
+        data=json.dumps(payload).encode('utf-8'),
+        headers={
+            'User-Agent': 'AHSD-Test/1.0',
+            'Accept': '*/*',
+            'Content-Type': 'application/json',
+        },
+        method='POST',
+    )
+    with urlopen(req, timeout=20) as resp:
+        raw = resp.read().decode('utf-8', errors='replace')
+        content_type = resp.headers.get('Content-Type', '')
+    return raw, content_type
+
+
 def parse_response(raw):
     raw = raw.strip()
     if not raw:
@@ -68,6 +86,27 @@ def save_json(data, path):
 def run_test(script_url, output_dir):
     os.makedirs(output_dir, exist_ok=True)
     results = {}
+
+    print('--- Testando endpoint: tipo=ping')
+    ping_url = build_url(script_url, {'tipo': 'ping'})
+    raw, content_type = fetch_url(ping_url)
+    ping_data = parse_response(raw)
+    print(f'  GET ping OK -> {ping_data}')
+    results[('ping', 'json')] = {
+        'url': ping_url,
+        'content_type': content_type,
+        'data': ping_data,
+    }
+
+    print('--- Testando POST: tipo=__ping')
+    raw, content_type = post_json(script_url, {'tipo': '__ping'})
+    post_ping_data = parse_response(raw)
+    print(f'  POST ping OK -> {post_ping_data}')
+    results[('post_ping', 'json')] = {
+        'url': script_url,
+        'content_type': content_type,
+        'data': post_ping_data,
+    }
 
     for tipo in ('respostas', 'links'):
         print(f'--- Testando endpoint: tipo={tipo}')

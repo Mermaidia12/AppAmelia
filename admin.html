@@ -370,6 +370,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--surface2);color:var(--ink
       <input type="text" id="base-url" placeholder="https://usuario.github.io/repositorio" oninput="salvarConfig()">
       <p class="form-hint">Ex: https://mermaidia12.github.io/AppAmelia</p>
     </div>
+    <div class="btn-bar" style="margin-top:0;padding-top:0;border-top:none;margin-bottom:1rem">
+      <button class="btn btn-ghost" type="button" onclick="testarAppsScript()">🧪 Testar Conexão</button>
+    </div>
     <div id="config-msg" style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:.6rem .9rem;font-size:.8rem;color:#166534;font-weight:600;margin-bottom:1rem">✅ Salvo!</div>
     <button class="btn btn-primary" onclick="fecharConfig()" style="width:100%;justify-content:center">Confirmar</button>
   </div>
@@ -425,20 +428,32 @@ function getBaseUrl(){
 function isValidAppsScriptUrl(url) {
   return typeof url === 'string' && /\/exec(?:\?.*)?$/.test(url.trim());
 }
+function setConfigMsg(msg, tone){
+  var m=document.getElementById('config-msg');
+  var styles={
+    success:{bg:'#f0fdf4',border:'#86efac',color:'#166534'},
+    warn:{bg:'#fffbeb',border:'#fcd34d',color:'#92400e'},
+    error:{bg:'#fef2f2',border:'#fca5a5',color:'#991b1b'},
+    info:{bg:'#eff6ff',border:'#93c5fd',color:'#1d4ed8'}
+  };
+  var s=styles[tone]||styles.success;
+  m.textContent=msg;
+  m.style.display='block';
+  m.style.background=s.bg;
+  m.style.borderColor=s.border;
+  m.style.color=s.color;
+}
 function salvarConfig(){
   var scriptUrl=document.getElementById('script-url').value.trim();
   var baseUrl=document.getElementById('base-url').value.trim();
-  var m=document.getElementById('config-msg');
   if(scriptUrl && !isValidAppsScriptUrl(scriptUrl)){
-    m.textContent='⚠️ A URL do Apps Script deve ser a URL de implantação final e terminar em /exec.';
-    m.style.display='block';
+    setConfigMsg('⚠️ A URL do Apps Script deve ser a URL de implantação final e terminar em /exec.','warn');
     return;
   }
   localStorage.setItem('ahsd_script_url', scriptUrl);
   localStorage.setItem('ahsd_base_url', baseUrl);
-  m.textContent='✅ Salvo!';
-  m.style.display='block';
-  setTimeout(function(){m.style.display='none';m.textContent='✅ Salvo!';},2000);
+  setConfigMsg('✅ Salvo!','success');
+  setTimeout(function(){document.getElementById('config-msg').style.display='none';},2000);
   atualizarStatus();
 }
 function abrirConfig(){
@@ -548,6 +563,42 @@ function jsonp(url, callback) {
   };
   script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + name;
   document.head.appendChild(script);
+}
+
+function testarJsonp(url){
+  return new Promise(function(resolve, reject){
+    jsonp(url, function(err, data){
+      if(err) reject(err);
+      else resolve(data);
+    });
+  });
+}
+
+async function testarAppsScript(){
+  var script=(document.getElementById('script-url').value||'').trim() || getScriptUrl();
+  if(!script){
+    setConfigMsg('⚠️ Informe a URL do Apps Script antes de testar.','warn');
+    return;
+  }
+  if(!isValidAppsScriptUrl(script)){
+    setConfigMsg('⚠️ A URL do Apps Script precisa terminar em /exec.','warn');
+    return;
+  }
+
+  setConfigMsg('⏳ Testando doGet do Apps Script...','info');
+
+  try{
+    var ping = await testarJsonp(script+'?tipo=ping&ts='+Date.now());
+    if(!ping || ping.ok !== true){
+      setConfigMsg('⚠️ O Apps Script respondeu, mas o retorno de ping foi inesperado.','warn');
+      return;
+    }
+
+    await testarJsonp(script+'?tipo=links&ts='+Date.now());
+    setConfigMsg('✅ Conexão OK. doGet está ativo e a implantação parece correta. Versão: '+(ping.version||'sem versão'),'success');
+  }catch(err){
+    setConfigMsg('❌ Falha no teste. Se a URL estiver certa, a implantação publicada provavelmente não contém doGet. Detalhe: '+err.message,'error');
+  }
 }
 
 async function carregarLinks(){

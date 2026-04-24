@@ -9,17 +9,20 @@
 
 const SHEET_RESPOSTAS = 'Respostas';
 const SHEET_LINKS     = 'Links Gerados';
+const SCRIPT_VERSION  = '2026-04-24';
 
 // ── POST: salvar dados ──────────────────────────────────────
 function doPost(e) {
-  const lock = LockService.scriptLock();
+  const lock = LockService.getScriptLock();
   lock.tryLock(10000);
   try {
     const ss   = SpreadsheetApp.getActiveSpreadsheet();
     const data = JSON.parse(e.postData.contents);
     const tipo = data.tipo || '';
 
-    if (tipo === 'link') {
+    if (tipo === 'ping' || tipo === '__ping') {
+      return resposta({ ok: true, method: 'POST', version: SCRIPT_VERSION });
+    } else if (tipo === 'link') {
       salvarLink(ss, data);
     } else if (tipo === 'resposta') {
       salvarResposta(ss, data);
@@ -29,7 +32,7 @@ function doPost(e) {
   } catch(err) {
     return resposta({ ok: false, error: err.toString() });
   } finally {
-    lock.releaseLock();
+    if (lock.hasLock()) lock.releaseLock();
   }
 }
 
@@ -100,7 +103,9 @@ function doGet(e) {
 
   let result;
 
-  if (tipo === 'links') {
+  if (tipo === 'ping') {
+    result = { ok: true, method: 'GET', version: SCRIPT_VERSION };
+  } else if (tipo === 'links') {
     const sheet = ss.getSheetByName(SHEET_LINKS);
     if (!sheet || sheet.getLastRow() < 2) {
       result = [];
