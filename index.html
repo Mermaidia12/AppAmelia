@@ -193,12 +193,19 @@ tr.sec-hdr td:last-child{border-radius:0 6px 6px 0}
 // ═════════════════════════════════════════
 // APPS SCRIPT URL — configure aqui
 // ═════════════════════════════════════════
-const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzK0E0gQkfsrKnsXqSZHHrbJentSODlm2dsMwVChsFoCA0eje5BwkvTp-hZhq4PhVFq/exec';
+const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyR3IexUjxVu5cwIRcPxGqBR11adGY7vjVzCWELwo0bfC2u9ZO-GI9YHXD1DbyylT56/exec';
+const DEFAULT_CONFIG_VERSION = '2026-04-24-project-defaults-v1';
+function bootstrapDefaultConfig() {
+  if (localStorage.getItem('ahsd_config_version') === DEFAULT_CONFIG_VERSION) return;
+  localStorage.setItem('ahsd_script_url', DEFAULT_APPS_SCRIPT_URL);
+  localStorage.setItem('ahsd_config_version', DEFAULT_CONFIG_VERSION);
+}
 function getAppsScriptUrl() {
   const params = new URLSearchParams(location.search);
   const scriptUrl = params.get('script');
   if (scriptUrl) {
     localStorage.setItem('ahsd_script_url', scriptUrl);
+    localStorage.setItem('ahsd_config_version', DEFAULT_CONFIG_VERSION);
     return scriptUrl;
   }
   return localStorage.getItem('ahsd_script_url') || DEFAULT_APPS_SCRIPT_URL || '';
@@ -273,6 +280,7 @@ let dadosIdentificacao = {};
 // INIT
 // ════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
+  bootstrapDefaultConfig();
   params = new URLSearchParams(location.search);
   const qsParam = params.get('qs') || '';
 

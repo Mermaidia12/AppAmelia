@@ -388,8 +388,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--surface2);color:var(--ink
 <div id="toast"></div>
 
 <script>
-const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzK0E0gQkfsrKnsXqSZHHrbJentSODlm2dsMwVChsFoCA0eje5BwkvTp-hZhq4PhVFq/exec';
+const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyR3IexUjxVu5cwIRcPxGqBR11adGY7vjVzCWELwo0bfC2u9ZO-GI9YHXD1DbyylT56/exec';
 const DEFAULT_BASE_URL = 'https://mermaidia12.github.io/AppAmelia';
+const DEFAULT_CONFIG_VERSION = '2026-04-24-project-defaults-v1';
 
 const QS = [
   {id:'a1',    label:'Anexo 1 — Entrevista Pais',      icon:'🗣️',tag:'PAIS'},
@@ -425,6 +426,13 @@ function irPara(id, btn) {
 function toggleSidebar(){
   document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+
+function bootstrapDefaultConfig(){
+  if(localStorage.getItem('ahsd_config_version') === DEFAULT_CONFIG_VERSION) return;
+  localStorage.setItem('ahsd_script_url', DEFAULT_APPS_SCRIPT_URL);
+  localStorage.setItem('ahsd_base_url', DEFAULT_BASE_URL);
+  localStorage.setItem('ahsd_config_version', DEFAULT_CONFIG_VERSION);
 }
 
 // CONFIG
@@ -1003,6 +1011,7 @@ function toast(msg,color){
 
 // INIT
 window.addEventListener('DOMContentLoaded',function(){
+  bootstrapDefaultConfig();
   buildSelector(); atualizarContador(); atualizarBadges(); atualizarStatus(); carregarLinks();
 });
 </script>
