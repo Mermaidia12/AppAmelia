@@ -810,6 +810,12 @@ function exportarInstrumentoPDF(id){
   if(!inst) return toast('Instrumento não encontrado.','#d97706');
   exportarLinhasPDF(inst.rows,'Relatório por Instrumento',inst.aluno+' · '+inst.instrumento,'respostas_'+inst.aluno+'_'+inst.instrumento);
 }
+function normalizarTextoComparacao(texto){
+  return String(texto||'')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase();
+}
 function renderRespostasAntiga(data){
   var c=document.getElementById('respostas-container');
   if(!data.length){c.innerHTML='<div class="empty"><div class="ei">🔍</div><p>Nenhuma resposta encontrada.</p></div>';return;}
@@ -899,6 +905,70 @@ function renderRespostas(data){
           var resp=r.resposta||'â€”';
           var cls=/sempre|sim/i.test(resp)?'c-s':/nÃ£o|nao/i.test(resp)&&!/observ/i.test(resp)?'c-n':/vezes|algumas/i.test(resp)?'c-a':/observ/i.test(resp)?'c-o':'';
           html+='<div class="resp-qa"><span class="resp-q">'+(r.pergunta||'â€”')+'</span><span class="resp-a '+cls+'">'+resp+'</span></div>';
+        });
+      });
+      html+='</div>';
+    });
+    html+='</div></div>';
+  });
+  c.innerHTML=html;
+  var alunos=new Set(Object.keys(grupos).map(function(k){return grupos[k].aluno;})).size;
+  document.getElementById('stat-alunos').textContent=alunos;
+}
+function normalizarTextoComparacao(texto){
+  return String(texto||'')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase();
+}
+function renderRespostas(data){
+  var c=document.getElementById('respostas-container');
+  if(!data.length){c.innerHTML='<div class="empty"><div class="ei">&#128269;</div><p>Nenhuma resposta encontrada.</p></div>';return;}
+  var grupos={};
+  gruposRespExport={};
+  instrumentosRespExport={};
+  data.forEach(function(r){
+    var k=(r.linkId||'x')+'|'+(r.aluno||'?');
+    if(!grupos[k]) grupos[k]={aluno:r.aluno||'-',escola:r.escola||'-',serie:r.serie||'',data:r.data||'-',inst:{}};
+    var i=r.instrumento||'Geral';
+    if(!grupos[k].inst[i]) grupos[k].inst[i]=[];
+    grupos[k].inst[i].push(r);
+  });
+  var html='';
+  Object.keys(grupos).forEach(function(k,groupIndex){
+    var g=grupos[k];
+    var ni=Object.keys(g.inst).length;
+    var groupId='grupo_'+groupIndex;
+    gruposRespExport[groupId]={aluno:g.aluno,escola:g.escola,serie:g.serie,data:g.data,rows:Object.values(g.inst).flat()};
+    html+='<div class="resp-group">'+
+      '<div class="resp-group-hdr" onclick="toggleGrupo(this)">'+
+        '<div style="font-size:1.05rem;flex-shrink:0">&#128100;</div>'+
+        '<div style="flex:1;min-width:0"><h4>'+g.aluno+'</h4><div class="resp-meta">'+g.escola+(g.serie?' - '+g.serie:'')+' - '+g.data+'</div></div>'+
+        '<div class="resp-actions">'+
+          '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();exportarGrupoExcel(\''+groupId+'\')">Excel</button>'+
+          '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();exportarGrupoPDF(\''+groupId+'\')">PDF</button>'+
+        '</div>'+
+        '<span class="n-badge">'+ni+' instrumento'+(ni>1?'s':'')+'</span>'+
+        '<span class="arrow">▼</span>'+
+      '</div>'+
+      '<div class="resp-body">';
+    Object.keys(g.inst).forEach(function(inst,instIndex){
+      var rows=g.inst[inst];
+      var secs={};
+      var instId=groupId+'_inst_'+instIndex;
+      instrumentosRespExport[instId]={aluno:g.aluno,instrumento:inst,rows:rows};
+      rows.forEach(function(r){var s=r.secao||'Geral';if(!secs[s])secs[s]=[];secs[s].push(r);});
+      html+='<div class="resp-inst"><div class="resp-inst-head"><div class="resp-inst-title">'+inst+'</div><div class="resp-actions">'+
+        '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();exportarInstrumentoExcel(\''+instId+'\')">Excel</button>'+
+        '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();exportarInstrumentoPDF(\''+instId+'\')">PDF</button>'+
+      '</div></div>';
+      Object.keys(secs).forEach(function(s){
+        if(s!=='Geral') html+='<div class="resp-sec">'+s+'</div>';
+        secs[s].forEach(function(r){
+          var resp=r.resposta||'-';
+          var respNorm=normalizarTextoComparacao(resp);
+          var cls=/sempre|sim/.test(respNorm)?'c-s':/nao/.test(respNorm)&&!/observ/.test(respNorm)?'c-n':/vezes|algumas/.test(respNorm)?'c-a':/observ/.test(respNorm)?'c-o':'';
+          html+='<div class="resp-qa"><span class="resp-q">'+(r.pergunta||'-')+'</span><span class="resp-a '+cls+'">'+resp+'</span></div>';
         });
       });
       html+='</div>';
