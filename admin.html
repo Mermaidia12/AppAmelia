@@ -665,15 +665,14 @@ function copiarURL(btn){navigator.clipboard.writeText(btn.dataset.url).then(func
 async function enviarAcaoAdmin(payload){
   var script=getScriptUrl();
   if(!script || !isValidAppsScriptUrl(script)) return false;
+  var params=new URLSearchParams(payload);
+  params.set('ts',Date.now());
   try{
-    await fetch(script,{
-      method:'POST',
-      mode:'no-cors',
-      body:JSON.stringify(payload)
-    });
-    return true;
+    var resp=await testarJsonp(script+'?'+params.toString());
+    return !!(resp && resp.ok);
   }catch(err){
     console.warn('Erro ao enviar ação para Apps Script:', err);
+    toast('Não consegui confirmar a exclusão na planilha. Reimplante o Apps Script atualizado.','#d97706');
     return false;
   }
 }
@@ -713,21 +712,8 @@ async function excluirTudoGerado(){
 
   limparTelaGerada();
 
-  var script=getScriptUrl();
-  if(script && isValidAppsScriptUrl(script)){
-    try{
-      await fetch(script,{
-        method:'POST',
-        mode:'no-cors',
-        body:JSON.stringify({tipo:'limparTudo'})
-      });
-      toast('Tudo que foi gerado foi excluído.','#059669');
-      return;
-    }catch(err){
-      console.warn('Erro ao limpar Apps Script:', err);
-    }
-  }
-  toast('Dados locais excluídos. Verifique a configuração do Apps Script.','#d97706');
+  var remoto=await enviarAcaoAdmin({tipo:'limparTudo'});
+  toast(remoto?'Tudo que foi gerado foi excluído.':'Dados locais excluídos. Verifique o Apps Script.','#059669');
 }
 
 // RESPOSTAS

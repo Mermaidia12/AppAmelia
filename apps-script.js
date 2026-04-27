@@ -9,7 +9,7 @@
 
 const SHEET_RESPOSTAS = 'Respostas';
 const SHEET_LINKS     = 'Links Gerados';
-const SCRIPT_VERSION  = '2026-04-27-delete-response-groups';
+const SCRIPT_VERSION  = '2026-04-27-jsonp-delete-actions';
 
 // ── POST: salvar dados ──────────────────────────────────────
 function doPost(e) {
@@ -199,6 +199,18 @@ function doGet(e) {
 
   if (tipo === 'ping') {
     result = { ok: true, method: 'GET', version: SCRIPT_VERSION };
+  } else if (tipo === 'limparTudo') {
+    limparTudoGerado(ss);
+    result = { ok: true, action: tipo, version: SCRIPT_VERSION };
+  } else if (tipo === 'excluirLink') {
+    excluirLinkGerado(ss, e.parameter.linkId || '');
+    result = { ok: true, action: tipo, version: SCRIPT_VERSION };
+  } else if (tipo === 'excluirTeste') {
+    excluirTesteFeito(ss, e.parameter.linkId || '', e.parameter.instrumento || '');
+    result = { ok: true, action: tipo, version: SCRIPT_VERSION };
+  } else if (tipo === 'excluirGrupoRespostas') {
+    excluirGrupoRespostas(ss, e.parameter.linkId || '', e.parameter.aluno || '');
+    result = { ok: true, action: tipo, version: SCRIPT_VERSION };
   } else if (tipo === 'links') {
     const sheet = ss.getSheetByName(SHEET_LINKS);
     if (!sheet || sheet.getLastRow() < 2) {
