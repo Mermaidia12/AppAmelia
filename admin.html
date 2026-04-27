@@ -1027,11 +1027,13 @@ function renderRespostas(data){
     var g=grupos[k];
     var ni=Object.keys(g.inst).length;
     var groupId='grupo_'+groupIndex;
-    gruposRespExport[groupId]={aluno:g.aluno,escola:g.escola,serie:g.serie,data:g.data,rows:Object.values(g.inst).flat()};
+    var groupRows=Object.values(g.inst).flat();
+    gruposRespExport[groupId]={aluno:g.aluno,escola:g.escola,serie:g.serie,data:g.data,linkId:groupRows.length?(groupRows[0].linkId||''):'',rows:groupRows};
     html+='<div class="resp-group">'+
       '<div class="resp-group-hdr" onclick="toggleGrupo(this)">'+
         '<div style="font-size:1.05rem;flex-shrink:0">&#128100;</div>'+
         '<div style="flex:1;min-width:0"><h4>'+g.aluno+'</h4><div class="resp-meta">'+g.escola+(g.serie?' - '+g.serie:'')+' - '+g.data+'</div></div>'+
+        '<button class="btn btn-danger btn-sm" style="margin-left:auto" title="Excluir respostas" data-group-id="'+groupId+'" onclick="event.stopPropagation();excluirGrupoRespostas(this)">&#128465;</button>'+
         '<div class="resp-actions">'+
           '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();exportarGrupoExcel(\''+groupId+'\')">Excel</button>'+
           '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();exportarGrupoPDF(\''+groupId+'\')">PDF</button>'+
