@@ -9,7 +9,7 @@
 
 const SHEET_RESPOSTAS = 'Respostas';
 const SHEET_LINKS     = 'Links Gerados';
-const SCRIPT_VERSION  = '2026-04-24';
+const SCRIPT_VERSION  = '2026-04-27-clear-generated';
 
 // ── POST: salvar dados ──────────────────────────────────────
 function doPost(e) {
@@ -26,6 +26,8 @@ function doPost(e) {
       salvarLink(ss, data);
     } else if (tipo === 'resposta') {
       salvarResposta(ss, data);
+    } else if (tipo === 'limparTudo') {
+      limparTudoGerado(ss);
     }
 
     return resposta({ ok: true });
@@ -34,6 +36,25 @@ function doPost(e) {
   } finally {
     if (lock.hasLock()) lock.releaseLock();
   }
+}
+
+function limparTudoGerado(ss) {
+  limparOuCriarSheet(ss, SHEET_LINKS, ['Data', 'Rótulo', 'Questionários', 'Link ID', 'URL', 'Respostas']);
+  limparOuCriarSheet(ss, SHEET_RESPOSTAS, ['Data','Link ID','Aluno','Escola','Série','Responsável','Instrumento','Seção','Pergunta','Resposta']);
+}
+
+function limparOuCriarSheet(ss, nome, cabecalho) {
+  let sheet = ss.getSheetByName(nome);
+  if (!sheet) {
+    sheet = ss.insertSheet(nome);
+    sheet.appendRow(cabecalho);
+  }
+  const lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    sheet.deleteRows(2, lastRow - 1);
+  }
+  sheet.getRange(1,1,1,cabecalho.length).setValues([cabecalho]);
+  sheet.getRange(1,1,1,cabecalho.length).setFontWeight('bold').setBackground('#1a1a2e').setFontColor('#fff');
 }
 
 function salvarLink(ss, data) {

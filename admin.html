@@ -106,6 +106,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--surface2);color:var(--ink
 .btn-primary:hover{background:var(--accent2)}
 .btn-green{background:var(--green);color:#fff}
 .btn-green:hover{opacity:.9}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{opacity:.9}
 .btn-ghost{background:var(--surface2);color:var(--ink2);border:1.5px solid var(--border)}
 .btn-ghost:hover{background:var(--border)}
 .btn-sm{padding:.28rem .7rem;font-size:.76rem}
@@ -324,6 +326,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--surface2);color:var(--ink
   <div class="card">
     <div class="card-title">Links
       <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="carregarLinks()">🔄 Atualizar</button>
+      <button class="btn btn-danger btn-sm" onclick="excluirTudoGerado()">Excluir tudo</button>
     </div>
     <div id="links-container">
       <div class="empty"><div class="ei">🔗</div><p>Nenhum link gerado ainda.<br>Vá em "Gerar Link" para criar o primeiro.</p></div>
@@ -342,6 +345,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--surface2);color:var(--ink
       <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="carregarRespostas()">🔄 Atualizar</button>
       <button class="btn btn-ghost btn-sm" onclick="exportarRespostasExcel()">📊 Exportar Excel</button>
       <button class="btn btn-ghost btn-sm" onclick="exportarRespostasPDF()">🧾 Exportar PDF</button>
+      <button class="btn btn-danger btn-sm" onclick="excluirTudoGerado()">Excluir tudo</button>
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:.6rem">
       <input type="text" id="filtro-aluno" placeholder="🔍 Buscar por aluno ou escola..." oninput="filtrarRespostas()"
@@ -656,6 +660,44 @@ function renderLinks(links){
     '<tbody>'+rows+'</tbody></table></div>';
 }
 function copiarURL(btn){navigator.clipboard.writeText(btn.dataset.url).then(function(){toast('📋 Copiado!','#5b5bd6');});}
+
+function limparTelaGerada(){
+  localStorage.setItem('ahsd_links','[]');
+  todasResp=[];
+  gruposRespExport={};
+  instrumentosRespExport={};
+  document.getElementById('links-container').innerHTML='<div class="empty"><div class="ei">🔗</div><p>Nenhum link ainda.</p></div>';
+  document.getElementById('respostas-container').innerHTML='<div class="empty"><div class="ei">📭</div><p>Nenhuma resposta ainda.<br>Compartilhe os links com os pais.</p></div>';
+  document.getElementById('badge-links').textContent='0';
+  document.getElementById('stat-links').textContent='0';
+  document.getElementById('badge-resp').textContent='0';
+  document.getElementById('stat-resp').textContent='0';
+  document.getElementById('stat-alunos').textContent='0';
+  popularFiltros([]);
+}
+
+async function excluirTudoGerado(){
+  var ok=confirm('Tem certeza que deseja excluir todos os links gerados e todas as respostas recebidas? Esta ação não pode ser desfeita.');
+  if(!ok) return;
+
+  limparTelaGerada();
+
+  var script=getScriptUrl();
+  if(script && isValidAppsScriptUrl(script)){
+    try{
+      await fetch(script,{
+        method:'POST',
+        mode:'no-cors',
+        body:JSON.stringify({tipo:'limparTudo'})
+      });
+      toast('Tudo que foi gerado foi excluído.','#059669');
+      return;
+    }catch(err){
+      console.warn('Erro ao limpar Apps Script:', err);
+    }
+  }
+  toast('Dados locais excluídos. Verifique a configuração do Apps Script.','#d97706');
+}
 
 // RESPOSTAS
 async function carregarRespostas(){
