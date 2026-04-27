@@ -9,7 +9,7 @@
 
 const SHEET_RESPOSTAS = 'Respostas';
 const SHEET_LINKS     = 'Links Gerados';
-const SCRIPT_VERSION  = '2026-04-27-delete-items';
+const SCRIPT_VERSION  = '2026-04-27-delete-response-groups';
 
 // ── POST: salvar dados ──────────────────────────────────────
 function doPost(e) {
@@ -32,6 +32,8 @@ function doPost(e) {
       excluirLinkGerado(ss, data.linkId || '');
     } else if (tipo === 'excluirTeste') {
       excluirTesteFeito(ss, data.linkId || '', data.instrumento || '');
+    } else if (tipo === 'excluirGrupoRespostas') {
+      excluirGrupoRespostas(ss, data.linkId || '', data.aluno || '');
     }
 
     return resposta({ ok: true });
@@ -86,18 +88,43 @@ function excluirTesteFeito(ss, linkId, instrumento) {
       removido = true;
     }
   }
-  if (removido) ajustarContadorLink(ss, linkId, -1);
+  if (removido) recalcularContadorLink(ss, linkId);
 }
 
-function ajustarContadorLink(ss, linkId, delta) {
+function excluirGrupoRespostas(ss, linkId, aluno) {
+  if (!linkId || !aluno) return;
+  const sheet = ss.getSheetByName(SHEET_RESPOSTAS);
+  if (!sheet || sheet.getLastRow() < 2) return;
+  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 10).getValues();
+  let removido = false;
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const row = rows[i];
+    if (String(row[1]) === String(linkId) && String(row[2]) === String(aluno)) {
+      sheet.deleteRow(i + 2);
+      removido = true;
+    }
+  }
+  if (removido) recalcularContadorLink(ss, linkId);
+}
+
+function recalcularContadorLink(ss, linkId) {
   const sheet = ss.getSheetByName(SHEET_LINKS);
   if (!sheet || !linkId || sheet.getLastRow() < 2) return;
+  const respostas = ss.getSheetByName(SHEET_RESPOSTAS);
+  let total = 0;
+  if (respostas && respostas.getLastRow() >= 2) {
+    const rows = respostas.getRange(2, 1, respostas.getLastRow() - 1, 10).getValues();
+    const instrumentos = {};
+    rows.forEach(row => {
+      if (String(row[1]) === String(linkId) && row[6]) instrumentos[String(row[6])] = true;
+    });
+    total = Object.keys(instrumentos).length;
+  }
   const ids = sheet.getRange(2, 4, sheet.getLastRow() - 1, 1).getValues();
   for (let i = 0; i < ids.length; i++) {
     if (String(ids[i][0]) === String(linkId)) {
       const cell = sheet.getRange(i + 2, 6);
-      const atual = Number(cell.getValue() || 0);
-      cell.setValue(Math.max(0, atual + delta));
+      cell.setValue(total);
       break;
     }
   }

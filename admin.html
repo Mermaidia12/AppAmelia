@@ -957,7 +957,8 @@ function renderRespostas(data){
     var g=grupos[k];
     var ni=Object.keys(g.inst).length;
     var groupId='grupo_'+groupIndex;
-    gruposRespExport[groupId]={aluno:g.aluno,escola:g.escola,serie:g.serie,data:g.data,rows:Object.values(g.inst).flat()};
+    var groupRows=Object.values(g.inst).flat();
+    gruposRespExport[groupId]={aluno:g.aluno,escola:g.escola,serie:g.serie,data:g.data,linkId:groupRows.length?(groupRows[0].linkId||''):'',rows:groupRows};
     html+='<div class="resp-group">'+
       '<div class="resp-group-hdr" onclick="toggleGrupo(this)">'+
         '<div style="font-size:1.05rem;flex-shrink:0">ðŸ‘¤</div>'+
@@ -965,6 +966,7 @@ function renderRespostas(data){
         '<div class="resp-actions">'+
           '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();exportarGrupoExcel(\''+groupId+'\')">Excel</button>'+
           '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();exportarGrupoPDF(\''+groupId+'\')">PDF</button>'+
+          '<button class="btn btn-danger btn-sm" title="Excluir respostas" data-group-id="'+groupId+'" onclick="event.stopPropagation();excluirGrupoRespostas(this)">&#128465;</button>'+
         '</div>'+
         '<span class="n-badge">'+ni+' instrumento'+(ni>1?'s':'')+'</span>'+
         '<span class="arrow">â–¼</span>'+
@@ -1042,11 +1044,12 @@ function renderRespostas(data){
       var rows=g.inst[inst];
       var secs={};
       var instId=groupId+'_inst_'+instIndex;
-      instrumentosRespExport[instId]={aluno:g.aluno,instrumento:inst,rows:rows};
+      instrumentosRespExport[instId]={aluno:g.aluno,instrumento:inst,linkId:rows.length?(rows[0].linkId||''):'',rows:rows};
       rows.forEach(function(r){var s=r.secao||'Geral';if(!secs[s])secs[s]=[];secs[s].push(r);});
       html+='<div class="resp-inst"><div class="resp-inst-head"><div class="resp-inst-title">'+inst+'</div><div class="resp-actions">'+
         '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();exportarInstrumentoExcel(\''+instId+'\')">Excel</button>'+
         '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();exportarInstrumentoPDF(\''+instId+'\')">PDF</button>'+
+        '<button class="btn btn-danger btn-sm" title="Excluir teste" data-inst-id="'+instId+'" onclick="event.stopPropagation();excluirTesteFeito(this)">&#128465;</button>'+
       '</div></div>';
       Object.keys(secs).forEach(function(s){
         if(s!=='Geral') html+='<div class="resp-sec">'+s+'</div>';
@@ -1080,6 +1083,22 @@ async function excluirTesteFeito(btn){
 
   var remoto=await enviarAcaoAdmin({tipo:'excluirTeste',linkId:inst.linkId,instrumento:inst.instrumento});
   toast(remoto?'Teste excluído.':'Teste excluído localmente. Verifique o Apps Script.','#059669');
+}
+async function excluirGrupoRespostas(btn){
+  var grupo=gruposRespExport[btn.dataset.groupId];
+  if(!grupo) return toast('Grupo de respostas não encontrado.','#d97706');
+  if(!confirm('Excluir todas as respostas deste aluno?')) return;
+
+  todasResp=todasResp.filter(function(r){
+    return !(String(r.linkId||'')===String(grupo.linkId||'') && String(r.aluno||'-')===String(grupo.aluno||'-'));
+  });
+  popularFiltros(todasResp);
+  renderRespostas(getFilteredResponses());
+  document.getElementById('badge-resp').textContent=todasResp.length;
+  document.getElementById('stat-resp').textContent=todasResp.length;
+
+  var remoto=await enviarAcaoAdmin({tipo:'excluirGrupoRespostas',linkId:grupo.linkId,aluno:grupo.aluno});
+  toast(remoto?'Respostas excluídas.':'Respostas excluídas localmente. Verifique o Apps Script.','#059669');
 }
 function toggleGrupo(hdr){
   var body=hdr.nextElementSibling;
