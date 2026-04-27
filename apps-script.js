@@ -9,7 +9,7 @@
 
 const SHEET_RESPOSTAS = 'Respostas';
 const SHEET_LINKS     = 'Links Gerados';
-const SCRIPT_VERSION  = '2026-04-27-clear-generated';
+const SCRIPT_VERSION  = '2026-04-27-delete-items';
 
 // ── POST: salvar dados ──────────────────────────────────────
 function doPost(e) {
@@ -28,6 +28,10 @@ function doPost(e) {
       salvarResposta(ss, data);
     } else if (tipo === 'limparTudo') {
       limparTudoGerado(ss);
+    } else if (tipo === 'excluirLink') {
+      excluirLinkGerado(ss, data.linkId || '');
+    } else if (tipo === 'excluirTeste') {
+      excluirTesteFeito(ss, data.linkId || '', data.instrumento || '');
     }
 
     return resposta({ ok: true });
@@ -55,6 +59,48 @@ function limparOuCriarSheet(ss, nome, cabecalho) {
   }
   sheet.getRange(1,1,1,cabecalho.length).setValues([cabecalho]);
   sheet.getRange(1,1,1,cabecalho.length).setFontWeight('bold').setBackground('#1a1a2e').setFontColor('#fff');
+}
+
+function excluirLinkGerado(ss, linkId) {
+  if (!linkId) return;
+  const sheet = ss.getSheetByName(SHEET_LINKS);
+  if (!sheet || sheet.getLastRow() < 2) return;
+  const ids = sheet.getRange(2, 4, sheet.getLastRow() - 1, 1).getValues();
+  for (let i = ids.length - 1; i >= 0; i--) {
+    if (String(ids[i][0]) === String(linkId)) {
+      sheet.deleteRow(i + 2);
+    }
+  }
+}
+
+function excluirTesteFeito(ss, linkId, instrumento) {
+  if (!linkId || !instrumento) return;
+  const sheet = ss.getSheetByName(SHEET_RESPOSTAS);
+  if (!sheet || sheet.getLastRow() < 2) return;
+  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 10).getValues();
+  let removido = false;
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const row = rows[i];
+    if (String(row[1]) === String(linkId) && String(row[6]) === String(instrumento)) {
+      sheet.deleteRow(i + 2);
+      removido = true;
+    }
+  }
+  if (removido) ajustarContadorLink(ss, linkId, -1);
+}
+
+function ajustarContadorLink(ss, linkId, delta) {
+  const sheet = ss.getSheetByName(SHEET_LINKS);
+  if (!sheet || !linkId || sheet.getLastRow() < 2) return;
+  const ids = sheet.getRange(2, 4, sheet.getLastRow() - 1, 1).getValues();
+  for (let i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]) === String(linkId)) {
+      const cell = sheet.getRange(i + 2, 6);
+      const atual = Number(cell.getValue() || 0);
+      cell.setValue(Math.max(0, atual + delta));
+      break;
+    }
+  }
 }
 
 function salvarLink(ss, data) {

@@ -653,6 +653,7 @@ function renderLinks(links){
       '<td style="display:flex;gap:.3rem">'+
         '<button class="btn btn-ghost btn-sm" data-url="'+url+'" onclick="copiarURL(this)">📋</button>'+
         '<a href="'+url+'" target="_blank" class="btn btn-ghost btn-sm">🔗</a>'+
+        '<button class="btn btn-danger btn-sm" title="Excluir link" data-link-id="'+escapeHtml(l.linkId||'')+'" onclick="excluirLinkCriado(this)">🗑️</button>'+
       '</td></tr>';
   });
   c.innerHTML='<div style="overflow-x:auto"><table class="links-table">'+
@@ -660,6 +661,36 @@ function renderLinks(links){
     '<tbody>'+rows+'</tbody></table></div>';
 }
 function copiarURL(btn){navigator.clipboard.writeText(btn.dataset.url).then(function(){toast('📋 Copiado!','#5b5bd6');});}
+
+async function enviarAcaoAdmin(payload){
+  var script=getScriptUrl();
+  if(!script || !isValidAppsScriptUrl(script)) return false;
+  try{
+    await fetch(script,{
+      method:'POST',
+      mode:'no-cors',
+      body:JSON.stringify(payload)
+    });
+    return true;
+  }catch(err){
+    console.warn('Erro ao enviar ação para Apps Script:', err);
+    return false;
+  }
+}
+
+async function excluirLinkCriado(btn){
+  var linkId=btn.dataset.linkId||'';
+  if(!confirm('Excluir este link gerado?')) return;
+
+  var local=JSON.parse(localStorage.getItem('ahsd_links')||'[]');
+  local=local.filter(function(l){return String(l.linkId||'')!==String(linkId);});
+  localStorage.setItem('ahsd_links',JSON.stringify(local));
+  renderLinks(local);
+  atualizarBadges();
+
+  var remoto=await enviarAcaoAdmin({tipo:'excluirLink',linkId:linkId});
+  toast(remoto?'Link excluído.':'Link excluído localmente. Verifique o Apps Script.','#059669');
+}
 
 function limparTelaGerada(){
   localStorage.setItem('ahsd_links','[]');
@@ -943,11 +974,12 @@ function renderRespostas(data){
       var rows=g.inst[inst];
       var secs={};
       var instId=groupId+'_inst_'+instIndex;
-      instrumentosRespExport[instId]={aluno:g.aluno,instrumento:inst,rows:rows};
+      instrumentosRespExport[instId]={aluno:g.aluno,instrumento:inst,linkId:rows.length?(rows[0].linkId||''):'',rows:rows};
       rows.forEach(function(r){var s=r.secao||'Geral';if(!secs[s])secs[s]=[];secs[s].push(r);});
       html+='<div class="resp-inst"><div class="resp-inst-head"><div class="resp-inst-title">'+inst+'</div><div class="resp-actions">'+
         '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();exportarInstrumentoExcel(\''+instId+'\')">Excel</button>'+
         '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();exportarInstrumentoPDF(\''+instId+'\')">PDF</button>'+
+        '<button class="btn btn-danger btn-sm" title="Excluir teste" data-inst-id="'+instId+'" onclick="event.stopPropagation();excluirTesteFeito(this)">🗑️</button>'+
       '</div></div>';
       Object.keys(secs).forEach(function(s){
         if(s!=='Geral') html+='<div class="resp-sec">'+s+'</div>';
@@ -973,7 +1005,11 @@ function normalizarTextoComparacao(texto){
 }
 function renderRespostas(data){
   var c=document.getElementById('respostas-container');
-  if(!data.length){c.innerHTML='<div class="empty"><div class="ei">&#128269;</div><p>Nenhuma resposta encontrada.</p></div>';return;}
+  if(!data.length){
+    c.innerHTML='<div class="empty"><div class="ei">&#128269;</div><p>Nenhuma resposta encontrada.</p></div>';
+    document.getElementById('stat-alunos').textContent='0';
+    return;
+  }
   var grupos={};
   gruposRespExport={};
   instrumentosRespExport={};
@@ -1028,6 +1064,22 @@ function renderRespostas(data){
   c.innerHTML=html;
   var alunos=new Set(Object.keys(grupos).map(function(k){return grupos[k].aluno;})).size;
   document.getElementById('stat-alunos').textContent=alunos;
+}
+async function excluirTesteFeito(btn){
+  var inst=instrumentosRespExport[btn.dataset.instId];
+  if(!inst) return toast('Teste não encontrado.','#d97706');
+  if(!confirm('Excluir este teste respondido?')) return;
+
+  todasResp=todasResp.filter(function(r){
+    return !(String(r.linkId||'')===String(inst.linkId||'') && String(r.instrumento||'Geral')===String(inst.instrumento||'Geral'));
+  });
+  popularFiltros(todasResp);
+  renderRespostas(getFilteredResponses());
+  document.getElementById('badge-resp').textContent=todasResp.length;
+  document.getElementById('stat-resp').textContent=todasResp.length;
+
+  var remoto=await enviarAcaoAdmin({tipo:'excluirTeste',linkId:inst.linkId,instrumento:inst.instrumento});
+  toast(remoto?'Teste excluído.':'Teste excluído localmente. Verifique o Apps Script.','#059669');
 }
 function toggleGrupo(hdr){
   var body=hdr.nextElementSibling;
